@@ -1,4 +1,4 @@
-import { Client, Schedule } from '@/lib/types';
+import { Client, EnrichedSchedule, EnrichedAuthorization, EnrichedServicePlan } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Phone, Mail, MapPin, FileText, UserCog, ClipboardCheck, DollarSign, FileCheck, Calendar, Briefcase } from 'lucide-react';
@@ -36,7 +36,7 @@ const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.E
     </div>
 );
 
-const scheduleColumns: ColumnDef<Schedule>[] = [
+const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
   { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
   { accessorKey: 'days', header: 'Days', cell: (row) => Array.isArray(row.days) ? row.days.join(', ') : row.days },

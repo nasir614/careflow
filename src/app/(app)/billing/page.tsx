@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, X, FilePlus2 } from 'lucide-react';
-import type { Billing } from '@/lib/types';
+import type { EnrichedBilling } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
-const getStatusBadgeClass = (status: Billing['status']) => {
+const getStatusBadgeClass = (status: EnrichedBilling['status']) => {
   switch (status) {
     case 'Paid':
       return 'bg-green-100 text-green-700';
@@ -28,7 +28,7 @@ const getStatusBadgeClass = (status: Billing['status']) => {
 };
 
 
-const columns: ColumnDef<Billing>[] = [
+const columns: ColumnDef<EnrichedBilling>[] = [
   {
     accessorKey: 'invoiceNo',
     header: 'Invoice #',
@@ -75,7 +75,7 @@ export default function BillingPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const clientOptions = useMemo(() => [...new Set(clients.map(c => `${c.firstName} ${c.lastName}`))], [clients]);
-  const statusOptions: Billing['status'][] = ['Pending', 'Submitted', 'Paid', 'Denied'];
+  const statusOptions: EnrichedBilling['status'][] = ['Pending', 'Submitted', 'Paid', 'Denied'];
 
   const filteredData = useMemo(() => {
     return billing.filter(item => {
@@ -100,7 +100,7 @@ export default function BillingPage() {
     const headers = Object.keys(billing[0]);
     const csv = [
       headers.join(','),
-      ...billing.map(row => headers.map(h => JSON.stringify(row[h as keyof Billing])).join(','))
+      ...billing.map(row => headers.map(h => JSON.stringify(row[h as keyof EnrichedBilling])).join(','))
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

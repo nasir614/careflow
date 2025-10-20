@@ -5,7 +5,7 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { Authorization, PlanStatus } from '@/lib/types';
+import type { EnrichedAuthorization, PlanStatus } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
@@ -22,7 +22,7 @@ const getStatusBadgeClass = (status: PlanStatus) => {
   }
 };
 
-const columns: ColumnDef<Authorization>[] = [
+const columns: ColumnDef<EnrichedAuthorization>[] = [
   {
     accessorKey: 'id',
     header: 'Auth ID',

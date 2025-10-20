@@ -28,7 +28,16 @@ import type {
   ServicePlan,
   CarePlan,
   Authorization,
-  Attendance
+  Attendance,
+  EnrichedSchedule,
+  EnrichedAttendance,
+  EnrichedBilling,
+  EnrichedTransportation,
+  EnrichedCarePlan,
+  EnrichedServicePlan,
+  EnrichedAuthorization,
+  EnrichedCompliance,
+  EnrichedStaffCredential
 } from '@/lib/types';
 import { eachDayOfInterval, format, isMatch, parse, differenceInMinutes, isValid } from 'date-fns';
 
@@ -47,15 +56,15 @@ interface CareFlowContextType {
   // State
   clients: Client[];
   staff: Staff[];
-  attendance: Attendance[];
-  compliance: Compliance[];
-  billing: Billing[];
-  transportation: Transportation[];
-  schedules: Schedule[];
-  staffCredentials: StaffCredential[];
-  servicePlans: ServicePlan[];
-  carePlans: CarePlan[];
-  authorizations: Authorization[];
+  attendance: EnrichedAttendance[];
+  compliance: EnrichedCompliance[];
+  billing: EnrichedBilling[];
+  transportation: EnrichedTransportation[];
+  schedules: EnrichedSchedule[];
+  staffCredentials: EnrichedStaffCredential[];
+  servicePlans: EnrichedServicePlan[];
+  carePlans: EnrichedCarePlan[];
+  authorizations: EnrichedAuthorization[];
   
   // Handlers
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
@@ -94,15 +103,15 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   // Main data states
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [staff, setStaff] = useState<Staff[]>(initialStaff);
-  const [attendance, setAttendance] = useState<Attendance[]>(initialAttendance);
-  const [compliance, setCompliance] = useState<Compliance[]>(initialCompliance);
-  const [billing, setBilling] = useState<Billing[]>(initialBilling);
-  const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
-  const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
-  const [staffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
-  const [servicePlans, setServicePlans] = useState<ServicePlan[]>(initialServicePlans);
-  const [carePlans, setCarePlans] = useState<CarePlan[]>(initialCarePlans);
-  const [authorizations, setAuthorizations] = useState<Authorization[]>(initialAuthorizations);
+  const [rawAttendance, setAttendance] = useState<Attendance[]>(initialAttendance);
+  const [rawCompliance, setCompliance] = useState<Compliance[]>(initialCompliance);
+  const [rawBilling, setBilling] = useState<Billing[]>(initialBilling);
+  const [rawTransportation, setTransportation] = useState<Transportation[]>(initialTransportation);
+  const [rawSchedules, setSchedules] = useState<Schedule[]>(initialSchedules);
+  const [rawStaffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
+  const [rawServicePlans, setServicePlans] = useState<ServicePlan[]>(initialServicePlans);
+  const [rawCarePlans, setCarePlans] = useState<CarePlan[]>(initialCarePlans);
+  const [rawAuthorizations, setAuthorizations] = useState<Authorization[]>(initialAuthorizations);
   
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -111,6 +120,69 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [selectedItem, setSelectedItem] = useState<AnyData | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
+
+  const clientsMap = useMemo(() => new Map(clients.map(c => [c.id, `${c.firstName} ${c.lastName}`])), [clients]);
+  const staffMap = useMemo(() => new Map(staff.map(s => [s.id, { name: s.name, role: s.role }])), [staff]);
+  const servicePlansMap = useMemo(() => new Map(rawServicePlans.map(p => [p.id, p])), [rawServicePlans]);
+
+  const enrichedSchedules = useMemo(() => rawSchedules.map(s => ({
+    ...s,
+    clientName: clientsMap.get(s.clientId) || 'Unknown Client',
+    staffName: staffMap.get(s.staffId)?.name || 'Unknown Staff',
+  })), [rawSchedules, clientsMap, staffMap]);
+
+  const enrichedAttendance = useMemo(() => rawAttendance.map(a => ({
+    ...a,
+    clientName: clientsMap.get(a.clientId) || 'Unknown Client',
+    staffName: staffMap.get(a.staffId)?.name || 'Unknown Staff',
+  })), [rawAttendance, clientsMap, staffMap]);
+
+  const enrichedBilling = useMemo(() => rawBilling.map(b => ({
+    ...b,
+    clientName: clientsMap.get(b.clientId) || 'Unknown Client',
+  })), [rawBilling, clientsMap]);
+  
+  const enrichedTransportation = useMemo(() => rawTransportation.map(t => ({
+    ...t,
+    client: clientsMap.get(t.clientId) || 'Unknown Client',
+    driver: staffMap.get(t.driverId)?.name || 'Unknown Driver',
+  })), [rawTransportation, clientsMap, staffMap]);
+
+  const enrichedCarePlans = useMemo(() => rawCarePlans.map(cp => ({
+    ...cp,
+    clientName: clientsMap.get(cp.clientId) || 'Unknown Client',
+    assignedStaff: staffMap.get(cp.assignedStaffId)?.name || 'Unknown Staff',
+  })), [rawCarePlans, clientsMap, staffMap]);
+  
+  const enrichedServicePlans = useMemo(() => rawServicePlans.map(sp => ({
+    ...sp,
+    clientName: clientsMap.get(sp.clientId) || 'Unknown Client',
+  })), [rawServicePlans, clientsMap]);
+
+  const enrichedAuthorizations = useMemo(() => rawAuthorizations.map(auth => {
+    const plan = servicePlansMap.get(auth.servicePlanId);
+    return {
+      ...auth,
+      clientName: clientsMap.get(auth.clientId) || 'Unknown Client',
+      servicePlan: plan?.planName || 'N/A',
+      serviceType: plan?.type || 'N/A',
+      billingCode: plan?.billingCode || 'N/A',
+    }
+  }), [rawAuthorizations, clientsMap, servicePlansMap]);
+
+  const enrichedCompliance = useMemo(() => rawCompliance.map(c => ({
+    ...c,
+    client: clientsMap.get(c.clientId) || 'Unknown Client',
+  })), [rawCompliance, clientsMap]);
+  
+  const enrichedStaffCredentials = useMemo(() => rawStaffCredentials.map(sc => {
+      const staffMember = staffMap.get(sc.staffId);
+      return {
+          ...sc,
+          staffName: staffMember?.name || 'Unknown Staff',
+          role: staffMember?.role || 'Unknown Role',
+      };
+  }), [rawStaffCredentials, staffMap]);
 
   const openModal = (type: ModalType, module: DataModule, item: AnyData | null = null) => {
     setModalType(type);
@@ -121,7 +193,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
   const closeModal = () => {
     setModalOpen(false);
-    // A slight delay to allow the dialog to animate out
     setTimeout(() => {
       setModalType('');
       setActiveModule(null);
@@ -135,9 +206,8 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       let newInvoices: Billing[] = [];
       let generatedCount = 0;
 
-      // Generate from transportation logs
-      transportation.forEach(trans => {
-        const alreadyBilled = billing.some(b => b.sourceLogId === `trans-${trans.id}`);
+      rawTransportation.forEach(trans => {
+        const alreadyBilled = rawBilling.some(b => b.sourceLogId === `trans-${trans.id}`);
         if (trans.status === 'Completed' && !alreadyBilled) {
             const client = clients.find(c => c.id === trans.clientId);
             const rate = SERVICE_RATES['Transportation'] || 0;
@@ -146,12 +216,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                 id: Date.now() + generatedCount,
                 invoiceNo: `INV-${Date.now().toString().slice(-6) + generatedCount}`,
                 clientId: client.id,
-                clientName: `${client.firstName} ${client.lastName}`,
-                scheduleId: 0, // No direct schedule link for transportation
+                scheduleId: 0, 
                 serviceDate: trans.date,
                 serviceType: 'Transportation',
-                serviceCode: 'A0120', // Example code for non-emergency transport
-                units: 1, // Per trip
+                serviceCode: 'A0120', 
+                units: 1, 
                 rate: rate,
                 amount: rate,
                 status: 'Pending',
@@ -184,11 +253,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       const newAttendanceLogs: Attendance[] = [];
       const updatedAttendanceLogs = new Map<number, Attendance>();
       
-      let nextId = Math.max(...attendance.map(a => a.id), 0) + 1;
+      let nextId = Math.max(...rawAttendance.map(a => a.id), 0) + 1;
 
       logs.forEach((log: any) => {
           if (log.status !== 'present' && !log.notes) {
-              return; // Skip if absent/excused without notes, or present without times
+              return; 
           }
           if (log.status === 'present' && (!log.checkInAM || !log.checkOutAM)) {
               return;
@@ -206,16 +275,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
           const totalHours = calculateHours(log.checkInAM, log.checkOutAM) + calculateHours(log.checkInPM, log.checkOutPM);
           
-          const existingLog = attendance.find(a => 
+          const existingLog = rawAttendance.find(a => 
             a.clientId === client.id && 
             format(new Date(a.date + 'T00:00:00'), 'yyyy-MM-dd') === log.date
           );
           
           const attendanceEntry: Omit<Attendance, 'id'> = {
             clientId: client.id,
-            clientName: `${client.firstName} ${client.lastName}`,
             staffId: staff.id,
-            staffName: staff.name,
             serviceType: serviceType,
             date: log.date,
             checkInAM: log.checkInAM,
@@ -262,114 +329,88 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => { // Simulate API delay
       const getSingularModuleName = (moduleName: string) => {
         if (moduleName === 'staffCredentials') return 'Staff Credential';
-        if (moduleName === 'staff') return 'Staff Member';
-        if (moduleName === 'servicePlans') return 'Service Plan';
-        if (moduleName === 'carePlans') return 'Care Plan';
-        if (moduleName === 'authorizations') return 'Authorization';
-        if (moduleName === 'attendance') return 'Attendance Log';
+        if (moduleName.endsWith('ies')) return moduleName.slice(0, -3) + 'y';
         if (moduleName.endsWith('s')) return moduleName.slice(0, -1);
         return moduleName;
       }
       const singularModule = getSingularModuleName(module);
       const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
 
-      const findClientName = (clientId: number | string) => {
-        const client = clients.find(c => String(c.id) === String(clientId));
-        return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
-      };
-      
-      const findStaffName = (staffId: number | string) => {
-        const staffMember = staff.find(s => String(s.id) === String(staffId));
-        return staffMember ? staffMember.name : 'Unknown Staff';
-      };
-
-      const findServicePlan = (planId: number | string) => {
-        return servicePlans.find(p => String(p.id) === String(planId));
-      }
-
       if (action === 'add') {
         const getNextId = (items: {id: number}[]) => Math.max(0, ...items.map(i => i.id)) + 1;
         
         let newId;
-        switch(module) {
-            case 'clients': newId = getNextId(clients); break;
-            case 'staff': newId = getNextId(staff); break;
-            case 'schedules': newId = getNextId(schedules); break;
-            case 'staffCredentials': newId = getNextId(staffCredentials); break;
-            case 'servicePlans': newId = getNextId(servicePlans); break;
-            case 'carePlans': newId = getNextId(carePlans); break;
-            case 'authorizations': newId = getNextId(authorizations); break;
-            case 'compliance': newId = getNextId(compliance); break;
-            case 'billing': newId = getNextId(billing); break;
-            case 'transportation': newId = getNextId(transportation); break;
-            case 'attendance': newId = getNextId(attendance); break;
-            default: newId = Date.now();
-        }
-
-        let newItem: any = { id: newId, createdAt: new Date().toISOString(), ...data };
-        
-        // Add relational data before setting state
-        if ('clientId' in newItem) newItem.clientName = findClientName(newItem.clientId);
-        if ('staffId' in newItem) newItem.staffName = findStaffName(newItem.staffId);
-        if ('assignedStaffId' in newItem) newItem.assignedStaff = findStaffName(newItem.assignedStaffId);
-        if ('servicePlanId' in newItem) {
-            const plan = findServicePlan(newItem.servicePlanId);
-            newItem.servicePlan = plan?.planName || 'N/A';
-            newItem.serviceType = plan?.type || 'N/A';
-            newItem.billingCode = plan?.billingCode || 'N/A';
-        }
+        let newItem: any;
 
         switch(module) {
-          case 'clients': setClients(prev => [...prev, newItem]); break;
-          case 'staff': setStaff(prev => [...prev, newItem]); break;
-          case 'schedules': 
-             newItem.usedUnits = 0; // Set default
-             setSchedules(prev => [...prev, newItem]); 
-            break;
-          case 'staffCredentials': setStaffCredentials(prev => [...prev, newItem]); break;
-          case 'servicePlans': setServicePlans(prev => [...prev, newItem]); break;
-          case 'carePlans': setCarePlans(prev => [...prev, newItem]); break;
-          case 'authorizations': 
-             newItem.usedHours = 0; // Set default
-             setAuthorizations(prev => [...prev, newItem]); 
-            break;
-          case 'compliance': setCompliance(prev => [...prev, newItem]); break;
-          case 'billing':
-            newItem.invoiceNo = `INV-${String(newId).slice(-6)}`;
-            newItem.amount = (data.units || 0) * (data.rate || 0);
-            setBilling(prev => [...prev, newItem]); 
-            break;
-          case 'transportation': setTransportation(prev => [...prev, newItem]); break;
-          case 'attendance':
-             const calculateHours = (timeInStr: string, timeOutStr: string) => {
-                if (!timeInStr || !timeOutStr) return 0;
-                const timeIn = parse(timeInStr, 'HH:mm', new Date());
-                const timeOut = parse(timeOutStr, 'HH:mm', new Date());
-                if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
-                    return differenceInMinutes(timeOut, timeIn) / 60;
-                }
-                return 0;
-             };
-             newItem.totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
-             newItem.location = 'Daycare Center';
-             setAttendance(prev => [...prev, newItem]);
-             break;
+            case 'clients': 
+              newId = getNextId(clients); 
+              newItem = { id: newId, ...data, createdAt: new Date().toISOString() };
+              setClients(prev => [...prev, newItem]); 
+              break;
+            case 'staff': 
+              newId = getNextId(staff); 
+              newItem = { id: newId, ...data };
+              setStaff(prev => [...prev, newItem]); 
+              break;
+            case 'schedules': 
+              newId = getNextId(rawSchedules);
+              newItem = { id: newId, ...data, usedUnits: 0, createdAt: new Date().toISOString() };
+              setSchedules(prev => [...prev, newItem]); 
+              break;
+            case 'staffCredentials': 
+              newId = getNextId(rawStaffCredentials);
+              newItem = { id: newId, ...data };
+              setStaffCredentials(prev => [...prev, newItem]); 
+              break;
+            case 'servicePlans': 
+              newId = getNextId(rawServicePlans);
+              newItem = { id: newId, ...data };
+              setServicePlans(prev => [...prev, newItem]); 
+              break;
+            case 'carePlans': 
+              newId = getNextId(rawCarePlans);
+              newItem = { id: newId, ...data };
+              setCarePlans(prev => [...prev, newItem]); 
+              break;
+            case 'authorizations': 
+              newId = getNextId(rawAuthorizations);
+              newItem = { id: newId, ...data, usedHours: 0 };
+              setAuthorizations(prev => [...prev, newItem]); 
+              break;
+            case 'compliance': 
+              newId = getNextId(rawCompliance);
+              newItem = { id: newId, ...data };
+              setCompliance(prev => [...prev, newItem]); 
+              break;
+            case 'billing':
+              newId = getNextId(rawBilling);
+              newItem = { id: newId, ...data, invoiceNo: `INV-${String(newId).slice(-6)}`, amount: (data.units || 0) * (data.rate || 0), createdAt: new Date().toISOString() };
+              setBilling(prev => [...prev, newItem]); 
+              break;
+            case 'transportation': 
+              newId = getNextId(rawTransportation);
+              newItem = { id: newId, ...data };
+              setTransportation(prev => [...prev, newItem]); 
+              break;
+            case 'attendance':
+              newId = getNextId(rawAttendance);
+              const calculateHours = (timeInStr: string, timeOutStr: string) => {
+                  if (!timeInStr || !timeOutStr) return 0;
+                  const timeIn = parse(timeInStr, 'HH:mm', new Date());
+                  const timeOut = parse(timeOutStr, 'HH:mm', new Date());
+                  if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
+                      return differenceInMinutes(timeOut, timeIn) / 60;
+                  }
+                  return 0;
+              };
+              newItem = { id: newId, ...data, totalHours: calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM), location: 'Daycare Center', createdAt: new Date().toISOString() };
+              setAttendance(prev => [...prev, newItem]);
+              break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
-        let updatedItem: any = { ...item, ...data };
-        
-        // Refresh relational data
-        if ('clientId' in updatedItem) updatedItem.clientName = findClientName(updatedItem.clientId);
-        if ('staffId' in updatedItem) updatedItem.staffName = findStaffName(updatedItem.staffId);
-        if ('assignedStaffId' in updatedItem) updatedItem.assignedStaff = findStaffName(updatedItem.assignedStaffId);
-        if ('servicePlanId' in updatedItem) {
-            const plan = findServicePlan(updatedItem.servicePlanId);
-            updatedItem.servicePlan = plan?.planName || 'N/A';
-            updatedItem.serviceType = plan?.type || 'N/A';
-            updatedItem.billingCode = plan?.billingCode || 'N/A';
-        }
-
+        const updatedItem = { ...item, ...data };
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
@@ -380,7 +421,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'authorizations': setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': 
-             updatedItem.amount = (data.units ?? (item as Billing).units) * (data.rate ?? (item as Billing).rate);
+            const billingItem = item as Billing;
+            const billingData = data as Partial<Billing>;
+            updatedItem.amount = (billingData.units ?? billingItem.units) * (billingData.rate ?? billingItem.rate);
             setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
             break;
           case 'transportation': setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
@@ -424,15 +467,15 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     clients,
     staff,
-    attendance,
-    compliance,
-    billing,
-    transportation,
-    schedules,
-    staffCredentials,
-    servicePlans,
-    carePlans,
-    authorizations,
+    attendance: enrichedAttendance,
+    compliance: enrichedCompliance,
+    billing: enrichedBilling,
+    transportation: enrichedTransportation,
+    schedules: enrichedSchedules,
+    staffCredentials: enrichedStaffCredentials,
+    servicePlans: enrichedServicePlans,
+    carePlans: enrichedCarePlans,
+    authorizations: enrichedAuthorizations,
     setClients,
     setStaff,
     setAttendance,

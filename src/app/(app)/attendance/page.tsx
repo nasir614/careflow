@@ -5,7 +5,7 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { Attendance } from '@/lib/types';
+import type { EnrichedAttendance } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-const getStatusBadgeVariant = (status: Attendance['status']) => {
+const getStatusBadgeVariant = (status: EnrichedAttendance['status']) => {
   switch (status) {
     case 'present':
       return 'badge-success';
@@ -30,7 +30,7 @@ const getStatusBadgeVariant = (status: Attendance['status']) => {
   }
 };
 
-const columns: ColumnDef<Attendance>[] = [
+const columns: ColumnDef<EnrichedAttendance>[] = [
   {
     accessorKey: 'id',
     header: 'Attendance ID',
@@ -90,7 +90,7 @@ export default function AttendancePage() {
 
   const clientOptions = useMemo(() => [...new Set(clients.map(c => `${c.firstName} ${c.lastName}`))], [clients]);
   const staffOptions = useMemo(() => [...new Set(staff.map(s => s.name))], [staff]);
-  const statusOptions: Attendance['status'][] = ['present', 'absent', 'excused'];
+  const statusOptions: EnrichedAttendance['status'][] = ['present', 'absent', 'excused'];
 
   const filteredData = useMemo(() => {
     return attendance

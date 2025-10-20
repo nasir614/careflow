@@ -75,7 +75,6 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
         case 'staffCredentials':
             return [
                 { name: 'staffId', label: 'Staff Member', type: 'select', options: staffOptions, required: true },
-                { name: 'role', label: 'Role', type: 'select', options: roleOptions, required: true },
                 { name: 'credential', label: 'Credential', type: 'text', required: true },
                 { name: 'training', label: 'Training', type: 'text' },
                 { name: 'hrDocument', label: 'HR Document', type: 'text' },
@@ -119,7 +118,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
         case 'transportation':
             return [
                 { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
-                { name: 'driver', label: 'Driver', type: 'text', required: true },
+                { name: 'driverId', label: 'Driver', type: 'select', options: staffOptions.filter(s => s.label.includes('Driver')), required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
                 { name: 'pickup', label: 'Pickup Time', type: 'time', required: true },
                 { name: 'dropoff', label: 'Dropoff Time', type: 'time', required: true },
@@ -153,18 +152,12 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     if (item) {
       const initialData: Partial<AnyData> = { ...item };
        // Ensure IDs are strings for select components
-      if ( 'clientId' in initialData && initialData.clientId) {
-        initialData.clientId = String(initialData.clientId);
-      }
-      if ('staffId' in initialData && initialData.staffId) {
-          initialData.staffId = String(initialData.staffId);
-      }
-       if ('assignedStaffId' in initialData && initialData.assignedStaffId) {
-          initialData.assignedStaffId = String(initialData.assignedStaffId);
-      }
-       if ('servicePlanId' in initialData && initialData.servicePlanId) {
-          initialData.servicePlanId = String(initialData.servicePlanId);
-      }
+      const idFields: (keyof AnyData)[] = ['clientId', 'staffId', 'assignedStaffId', 'servicePlanId', 'driverId'];
+      idFields.forEach(field => {
+        if (field in initialData && initialData[field]) {
+          (initialData as any)[field] = String(initialData[field]);
+        }
+      });
       setFormData(initialData);
     } else {
       const defaults: Partial<AnyData> = {};
@@ -197,8 +190,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     e.preventDefault();
     const dataToSubmit = { ...formData };
     
-    // Convert string IDs back to numbers before submission
-    const idFields: (keyof AnyData)[] = ['clientId', 'staffId', 'assignedStaffId', 'servicePlanId'];
+    const idFields: (keyof AnyData)[] = ['clientId', 'staffId', 'assignedStaffId', 'servicePlanId', 'driverId'];
     idFields.forEach(field => {
       if (dataToSubmit[field] && typeof dataToSubmit[field] === 'string') {
         (dataToSubmit as any)[field] = parseInt(dataToSubmit[field] as string, 10);
@@ -264,11 +256,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   
   const getSingularModuleName = (module: string) => {
     if (module === 'staffCredentials') return 'Staff Credential';
-    if (module === 'staff') return 'Staff Member';
-    if (module === 'servicePlans') return 'Service Plan';
-    if (module === 'carePlans') return 'Care Plan';
-    if (module === 'authorizations') return 'Authorization';
-    if (module === 'attendance') return 'Attendance Log';
+    if (module.endsWith('ies')) return module.slice(0, -3) + 'y';
     if (module.endsWith('s')) return module.slice(0, -1);
     return module;
   }

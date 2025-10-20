@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
-import type { Staff, Schedule, StaffCredential } from '@/lib/types';
+import type { Staff, EnrichedSchedule, EnrichedStaffCredential } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarRange, ShieldCheck, Phone, Mail, Briefcase, Contact } from 'lucide-react';
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-const scheduleColumns: ColumnDef<Schedule>[] = [
+const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   {
     accessorKey: 'id',
     header: 'Schedule ID',
@@ -73,7 +73,7 @@ const getCredentialStatus = (expiryDate: string | null) => {
 };
 
 
-const credentialColumns: ColumnDef<StaffCredential>[] = [
+const credentialColumns: ColumnDef<EnrichedStaffCredential>[] = [
     {
       accessorKey: 'id',
       header: 'Credential ID',

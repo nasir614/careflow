@@ -5,10 +5,10 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { Transportation } from '@/lib/types';
+import type { EnrichedTransportation } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 
-const columns: ColumnDef<Transportation>[] = [
+const columns: ColumnDef<EnrichedTransportation>[] = [
   {
     accessorKey: 'id',
     header: 'Trip ID',

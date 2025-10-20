@@ -37,8 +37,6 @@ export type Staff = {
 export type StaffCredential = {
   id: number;
   staffId: number;
-  staffName: string;
-  role: string;
   credential: string;
   training: string;
   hrDocument: string;
@@ -53,9 +51,7 @@ export type StaffCredential = {
 export type Attendance = {
   id: number;
   clientId: number;
-  clientName: string;
   staffId: number;
-  staffName: string;
   serviceType: string;
   date: string;
   checkInAM: string | null;
@@ -73,7 +69,6 @@ export type Attendance = {
 export type Compliance = {
   id: number;
   clientId: number;
-  client: string;
   type: 'Authorization' | 'Document' | 'Certification';
   item: string;
   status: 'Current' | 'Expiring Soon' | 'Expired';
@@ -85,7 +80,6 @@ export type Billing = {
   id: number;
   invoiceNo: string;
   clientId: number;
-  clientName: string;
   scheduleId: number;
   serviceDate: string;
   serviceType: string;
@@ -101,8 +95,7 @@ export type Billing = {
 export type Transportation = {
   id: number;
   clientId: number;
-  client: string;
-  driver: string;
+  driverId: number;
   pickup: string;
   dropoff: string;
   route: string;
@@ -113,10 +106,8 @@ export type Transportation = {
 export type Schedule = {
   id: number;
   clientId: number;
-  clientName: string;
   staffId: number;
-  staffName: string;
-  servicePlanId?: number;
+  servicePlanId: number;
   serviceType: string;
   serviceCode: string;
   frequency: string;
@@ -139,7 +130,6 @@ export type PlanStatus = 'Active' | 'Pending' | 'Expired' | 'Inactive';
 export type ServicePlan = {
   id: number;
   clientId: number;
-  clientName: string;
   planName: string;
   type: 'Medical' | 'Personal Care' | 'Social';
   billingCode: string;
@@ -152,13 +142,11 @@ export type ServicePlan = {
 export type CarePlan = {
   id: number;
   clientId: number;
-  clientName: string;
   planName: string;
   assignedStaffId: number;
-  assignedStaff: string;
   status: PlanStatus;
   startDate: string;
-endDate: string;
+  endDate: string;
   goals: string;
   notes?: string;
 };
@@ -166,19 +154,27 @@ endDate: string;
 export type Authorization = {
   id: number;
   clientId: number;
-  clientName: string;
   servicePlanId: number;
-  servicePlan: string;
-  serviceType: string;
-  billingCode: string;
   authorizedHours: number;
   usedHours: number;
   startDate: string;
-  endDate: string;
+endDate: string;
   status: PlanStatus;
   notes?: string;
 };
 
+// Enriched types for display purposes
+export type EnrichedSchedule = Schedule & { clientName: string; staffName: string; };
+export type EnrichedAttendance = Attendance & { clientName: string; staffName: string; };
+export type EnrichedBilling = Billing & { clientName: string; };
+export type EnrichedTransportation = Transportation & { client: string; driver: string; };
+export type EnrichedCarePlan = CarePlan & { clientName: string; assignedStaff: string; };
+export type EnrichedServicePlan = ServicePlan & { clientName: string; };
+export type EnrichedAuthorization = Authorization & { clientName: string; servicePlan: string; serviceType: string; billingCode: string; };
+export type EnrichedCompliance = Compliance & { client: string; };
+export type EnrichedStaffCredential = StaffCredential & { staffName: string; role: string; };
+
+
 export type DataModule = 'clients' | 'staff' | 'schedules' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations' | 'attendance';
 
-export type AnyData = Client | Staff | Schedule | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization | Attendance;
+export type AnyData = Client | Staff | Schedule | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization | Attendance | EnrichedSchedule | EnrichedAttendance | EnrichedBilling | EnrichedTransportation | EnrichedCarePlan | EnrichedServicePlan | EnrichedAuthorization | EnrichedCompliance | EnrichedStaffCredential;

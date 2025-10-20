@@ -5,10 +5,10 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { Compliance } from '@/lib/types';
+import type { EnrichedCompliance } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 
-const columns: ColumnDef<Compliance>[] = [
+const columns: ColumnDef<EnrichedCompliance>[] = [
   {
     accessorKey: 'id',
     header: 'ID',

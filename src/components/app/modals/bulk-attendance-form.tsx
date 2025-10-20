@@ -90,7 +90,6 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
       }
     }
     
-    // Preserve user modifications on month/year change
     const prevLogsMap = new Map(dailyLogs.map(l => [l.date, l]));
     const mergedLogs = newLogs.map(log => {
       if(prevLogsMap.has(log.date) && userModifiedDates.has(log.date)) {
@@ -111,7 +110,6 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
     newLogs[index] = { ...newLogs[index], [field]: value };
     setDailyLogs(newLogs);
     
-    // Track that the user has modified this date's log
     const modifiedDateKey = field === 'date' ? value : logDate;
     setUserModifiedDates(prev => new Set(prev).add(modifiedDateKey));
   };
