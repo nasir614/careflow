@@ -23,12 +23,12 @@ import { Badge } from '@/components/ui/badge';
 const getStatusBadgeClass = (status: Schedule['status']) => {
   switch (status) {
     case 'active':
-      return 'bg-green-100 text-green-700';
+      return 'badge-success';
     case 'pending':
-      return 'bg-yellow-100 text-yellow-700';
+      return 'badge-warning';
     case 'expired':
     default:
-      return 'bg-red-100 text-red-700';
+      return 'badge-danger';
   }
 };
 

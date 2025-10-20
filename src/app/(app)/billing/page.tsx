@@ -12,18 +12,19 @@ import { Download, X, FilePlus2 } from 'lucide-react';
 import type { EnrichedBilling } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const getStatusBadgeClass = (status: EnrichedBilling['status']) => {
   switch (status) {
     case 'Paid':
-      return 'bg-green-100 text-green-700';
+      return 'badge-success';
     case 'Submitted':
-      return 'bg-blue-100 text-blue-700';
+      return 'badge-info';
     case 'Denied':
-      return 'bg-red-100 text-red-700';
+      return 'badge-danger';
     case 'Pending':
     default:
-      return 'bg-yellow-100 text-yellow-700';
+      return 'badge-warning';
   }
 };
 
@@ -57,7 +58,7 @@ const columns: ColumnDef<EnrichedBilling>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
+    cell: (row) => <Badge className={cn('border-0', getStatusBadgeClass(row.status))}>{row.status}</Badge>,
   },
   {
     accessorKey: 'actions',

@@ -16,6 +16,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
+const getScheduleStatusBadgeClass = (status: EnrichedSchedule['status']) => {
+  switch (status) {
+    case 'active':
+      return 'badge-success';
+    case 'pending':
+      return 'badge-warning';
+    case 'expired':
+    default:
+      return 'badge-danger';
+  }
+};
+
 const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   {
     accessorKey: 'id',
@@ -55,7 +67,7 @@ const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <Badge variant={row.status === 'active' ? 'default' : row.status === 'expired' ? 'destructive' : 'secondary'} className={cn(row.status === 'active' ? 'bg-green-100 text-green-700' : row.status === 'expired' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700', 'border-0')}>{row.status}</Badge>,
+    cell: (row) => <Badge className={cn('border-0', getScheduleStatusBadgeClass(row.status))}>{row.status}</Badge>,
   },
   {
     accessorKey: 'actions',
@@ -65,11 +77,11 @@ const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
 ];
 
 const getCredentialStatus = (expiryDate: string | null) => {
-  if (!expiryDate) return { label: 'Active', className: 'bg-green-100 text-green-700' };
+  if (!expiryDate) return { label: 'Active', className: 'badge-success' };
   const diff = (new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  if (diff <= 0) return { label: "Expired", className: "bg-red-100 text-red-700" };
-  if (diff <= 30) return { label: "Expiring Soon", className: "bg-yellow-100 text-yellow-700" };
-  return { label: 'Active', className: 'bg-green-100 text-green-700' };
+  if (diff <= 0) return { label: "Expired", className: "badge-danger" };
+  if (diff <= 30) return { label: "Expiring Soon", className: "badge-warning" };
+  return { label: 'Active', className: 'badge-success' };
 };
 
 
@@ -99,7 +111,7 @@ const credentialColumns: ColumnDef<EnrichedStaffCredential>[] = [
       header: 'Status',
       cell: (row) => {
         const status = getCredentialStatus(row.expirationDate);
-        return <Badge className={cn(status.className, 'border-0')}>{status.label}</Badge>;
+        return <Badge className={cn('border-0', status.className)}>{status.label}</Badge>;
       },
     },
     {
@@ -252,7 +264,7 @@ export default function StaffPage() {
                         <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
                         <p className="text-muted-foreground">{selectedStaff.role}</p>
                     </div>
-                      <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0 mt-2 sm:mt-0')}>{selectedStaff.status}</Badge>
+                      <Badge className={cn('border-0', selectedStaff.status === 'Active' ? 'badge-success' : 'badge-danger')}>{selectedStaff.status}</Badge>
                 </div>
             </CardHeader>
             <CardContent className="border-t pt-6">
@@ -303,9 +315,9 @@ export default function StaffPage() {
                     Credentials & Training for {selectedStaff.name}
                   </div>
                   <div className="flex items-center gap-3 text-sm flex-wrap">
-                    <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
-                    <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
-                    <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
+                    <Badge className="border-0 badge-success">{credentialSummary.active} Active</Badge>
+                    <Badge className="border-0 badge-warning">{credentialSummary.expiring} Expiring</Badge>
+                    <Badge className="border-0 badge-danger">{credentialSummary.expired} Expired</Badge>
                   </div>
               </CardTitle>
             </CardHeader>
