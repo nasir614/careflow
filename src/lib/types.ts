@@ -32,13 +32,21 @@ export type Staff = {
 
 export type Attendance = {
   id: number;
+  clientId: number;
   clientName: string;
+  staffId: number;
+  staffName: string;
   date: string;
-  checkIn: string;
-  checkOut: string;
-  status: 'Present' | 'Absent' | 'Late Arrival' | 'Early Departure';
-  duration: string;
+  checkInAM: string;
+  checkOutAM: string;
+  checkInPM: string;
+  checkOutPM: string;
+  totalHours: number;
+  location: string;
+  billingCode: string;
+  status: 'present' | 'absent' | 'excused';
   notes: string;
+  createdAt: string;
 };
 
 export type Compliance = {

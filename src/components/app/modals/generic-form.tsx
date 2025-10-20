@@ -22,11 +22,15 @@ type FieldConfig = {
     label: string;
     type: 'text' | 'tel' | 'email' | 'date' | 'time' | 'number' | 'select' | 'textarea';
     required?: boolean;
-    options?: string[];
+    options?: { value: string; label: string }[] | string[];
     placeholder?: string;
+    className?: string;
 }
 
 const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): FieldConfig[] => {
+    const clientOptions = clients.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }));
+    const staffOptions = staff.map(s => ({ value: s.id.toString(), label: s.name }));
+
     switch (module) {
         case 'staff':
             return [
@@ -40,12 +44,17 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
             ];
         case 'attendance':
              return [
-                { name: 'clientName', label: 'Client Name', type: 'text', required: true },
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
+                { name: 'staffId', label: 'Staff', type: 'select', options: staffOptions, required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
-                { name: 'checkIn', label: 'Check In', type: 'time', required: true },
-                { name: 'checkOut', label: 'Check Out', type: 'time', required: false },
-                { name: 'status', label: 'Status', type: 'select', options: ['Present', 'Absent', 'Late Arrival', 'Early Departure'], required: true },
-                { name: 'notes', label: 'Notes', type: 'textarea', required: false }
+                { name: 'location', label: 'Location', type: 'text', required: true },
+                { name: 'checkInAM', label: 'Check In (AM)', type: 'time' },
+                { name: 'checkOutAM', label: 'Check Out (AM)', type: 'time' },
+                { name: 'checkInPM', label: 'Check In (PM)', type: 'time' },
+                { name: 'checkOutPM', label: 'Check Out (PM)', type: 'time' },
+                { name: 'billingCode', label: 'Billing Code', type: 'text' },
+                { name: 'status', label: 'Status', type: 'select', options: ['present', 'absent', 'excused'], required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' }
             ];
         case 'compliance':
             return [
@@ -107,17 +116,26 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   };
   
   const renderField = (field: FieldConfig) => {
-    const { name, label, type, required, options, placeholder } = field;
+    const { name, label, type, required, options, placeholder, className } = field;
+    const commonProps = {
+        key: name,
+        className: className || ''
+    };
+
     if (type === 'select') {
       return (
-        <div key={name}>
+        <div {...commonProps}>
           <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
-          <Select value={formData[name as keyof AnyData] as string || ""} onValueChange={(value) => handleSelectChange(name, value)} required={required}>
+          <Select value={(formData[name as keyof AnyData] as string) || ""} onValueChange={(value) => handleSelectChange(name, value)} required={required}>
             <SelectTrigger>
               <SelectValue placeholder={`Select ${label}`} />
             </SelectTrigger>
             <SelectContent>
-              {options?.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+              {options?.map(opt => 
+                typeof opt === 'string' 
+                ? <SelectItem key={opt} value={opt}>{opt}</SelectItem> 
+                : <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -125,14 +143,14 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     }
     if (type === 'textarea') {
       return (
-         <div key={name} className="md:col-span-2">
+         <div {...commonProps}>
           <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
           <Textarea name={name} value={(formData[name as keyof AnyData] as string) || ''} onChange={handleChange} required={required} placeholder={placeholder} />
         </div>
       );
     }
     return (
-      <div key={name}>
+      <div {...commonProps}>
         <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
         <Input type={type} name={name} value={(formData[name as keyof AnyData] as any) || ''} onChange={handleChange} required={required} placeholder={placeholder} />
       </div>

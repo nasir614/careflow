@@ -39,6 +39,30 @@ interface CareFlowContextType {
 
 const CareFlowContext = createContext<CareFlowContextType | undefined>(undefined);
 
+const calculateTotalHours = (data: Partial<Attendance>): number => {
+    let totalMinutes = 0;
+
+    const timeToMinutes = (time: string) => {
+        if (!time) return 0;
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const amIn = timeToMinutes(data.checkInAM || '');
+    const amOut = timeToMinutes(data.checkOutAM || '');
+    const pmIn = timeToMinutes(data.checkInPM || '');
+    const pmOut = timeToMinutes(data.checkOutPM || '');
+
+    if (amOut > amIn) {
+        totalMinutes += amOut - amIn;
+    }
+    if (pmOut > pmIn) {
+        totalMinutes += pmOut - pmIn;
+    }
+
+    return totalMinutes / 60;
+};
+
 export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   
@@ -80,24 +104,50 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
 
       if (action === 'add') {
-        const newItem = { id: Date.now(), ...data };
+        let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         switch(module) {
-          case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
-          case 'staff': setStaff(prev => [...prev, newItem]); break;
-          case 'schedules': setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); break;
-          case 'attendance': setAttendance(prev => [...prev, newItem]); break;
+          case 'clients': 
+            setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); 
+            break;
+          case 'staff': 
+            setStaff(prev => [...prev, newItem]); 
+            break;
+          case 'schedules': 
+            setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); 
+            break;
+          case 'attendance': 
+            const client = clients.find(c => String(c.id) === String(newItem.clientId));
+            const staffMember = staff.find(s => String(s.id) === String(newItem.staffId));
+            newItem = {
+                ...newItem,
+                clientName: client ? `${client.firstName} ${client.lastName}` : 'Unknown',
+                staffName: staffMember ? staffMember.name : 'Unknown',
+                totalHours: calculateTotalHours(newItem)
+            };
+            setAttendance(prev => [...prev, newItem]);
+            break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing': setBilling(prev => [...prev, newItem]); break;
           case 'transportation': setTransportation(prev => [...prev, newItem]); break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
-        const updatedItem = { ...item, ...data };
+        let updatedItem = { ...item, ...data };
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
           case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
-          case 'attendance': setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a)); break;
+          case 'attendance': 
+            const client = clients.find(c => String(c.id) === String(updatedItem.clientId));
+            const staffMember = staff.find(s => String(s.id) === String(updatedItem.staffId));
+            updatedItem = {
+                ...updatedItem,
+                clientName: client ? `${client.firstName} ${client.lastName}` : 'Unknown',
+                staffName: staffMember ? staffMember.name : 'Unknown',
+                totalHours: calculateTotalHours(updatedItem)
+            };
+            setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a)); 
+            break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); break;
           case 'transportation': setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
