@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Client } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ViewClientModal from '@/components/app/modals/view-client-modal';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import GenericViewModal from '@/components/app/modals/generic-view-modal';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
@@ -99,7 +99,7 @@ export default function ClientsPage() {
       
       <div>
         {selectedClient ? (
-            <ViewClientModal client={selectedClient} />
+            <GenericViewModal item={selectedClient} module="clients" />
         ) : (
             <div className="flex items-center justify-center h-64 bg-card rounded-2xl border border-dashed">
                 <p className="text-muted-foreground">Select a client to see their details.</p>

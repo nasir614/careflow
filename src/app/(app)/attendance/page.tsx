@@ -6,41 +6,16 @@ import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import type { EnrichedAttendance } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Clock, Filter, ListOrdered, PlusCircle, X, CheckCircle, XCircle } from 'lucide-react';
+import { CalendarIcon, Clock, Filter, PlusCircle, X, CheckCircle, XCircle } from 'lucide-react';
 import { format, subMonths } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-
-const getStatusBadgeVariant = (status: EnrichedAttendance['status']): 'badge-success' | 'badge-danger' | 'badge-warning' => {
-  switch (status) {
-    case 'present':
-      return 'badge-success';
-    case 'absent':
-      return 'badge-danger';
-    case 'excused':
-      return 'badge-warning';
-    default:
-      return 'badge-warning';
-  }
-};
-
-const getAdminStatusBadgeVariant = (status: EnrichedAttendance['adminStatus']): 'badge-success' | 'badge-danger' | 'badge-warning' => {
-  switch (status) {
-    case 'Approved':
-      return 'badge-success';
-    case 'Rejected':
-      return 'badge-danger';
-    case 'Pending':
-    default:
-      return 'badge-warning';
-  }
-};
 
 const ITEMS_PER_PAGE = 8;
 
@@ -61,58 +36,58 @@ export default function AttendancePage() {
     {
       accessorKey: 'id',
       header: 'Attendance ID',
-      cell: (row) => `ATT-${row.id}`,
+      cell: ({ id }) => `ATT-${id}`,
     },
     {
       accessorKey: 'clientName',
       header: 'Client',
-      cell: (row) => (
+      cell: ({ clientName, date }) => (
         <div>
-          <p className="font-medium">{row.clientName}</p>
-          <p className="text-xs text-muted-foreground">{format(new Date(row.date + 'T00:00:00'), 'MM/dd/yyyy')}</p>
+          <p className="font-medium">{clientName}</p>
+          <p className="text-xs text-muted-foreground">{format(new Date(date + 'T00:00:00'), 'MM/dd/yyyy')}</p>
         </div>
       )
     },
     {
       accessorKey: 'staffName',
       header: 'Staff',
-      cell: (row) => row.staffName,
+      cell: ({ staffName }) => staffName,
     },
     {
       accessorKey: 'checkInAM',
       header: 'Time In/Out',
-      cell: (row) => (
+      cell: ({ checkInAM, checkOutAM, checkInPM, checkOutPM }) => (
         <div className="text-xs">
-          <p>AM: {row.checkInAM || '--:--'} / {row.checkOutAM || '--:--'}</p>
-          <p>PM: {row.checkInPM || '--:--'} / {row.checkOutPM || '--:--'}</p>
+          <p>AM: {checkInAM || '--:--'} / {checkOutAM || '--:--'}</p>
+          <p>PM: {checkInPM || '--:--'} / {checkOutPM || '--:--'}</p>
         </div>
       ),
     },
     {
       accessorKey: 'totalHours',
       header: 'Total Hours',
-      cell: (row) => row.totalHours.toFixed(2),
+      cell: ({ totalHours }) => totalHours.toFixed(2),
     },
     {
       accessorKey: 'details',
       header: 'Details',
-      cell: (row) => (
+      cell: ({ billingCode, procedures, notes }) => (
         <div className="text-xs max-w-xs">
-          <p><span className="font-semibold">Code:</span> {row.billingCode}</p>
-          <p><span className="font-semibold">Procedures:</span> {row.procedures || 'N/A'}</p>
-          <p className="italic truncate"><span className="font-semibold">Notes:</span> {row.notes || 'N/A'}</p>
+          <p><span className="font-semibold">Code:</span> {billingCode}</p>
+          <p><span className="font-semibold">Procedures:</span> {procedures || 'N/A'}</p>
+          <p className="italic truncate"><span className="font-semibold">Notes:</span> {notes || 'N/A'}</p>
         </div>
       )
     },
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: (row) => <Badge className={cn('border-0', getStatusBadgeVariant(row.status))}>{row.status}</Badge>,
+      cell: ({ status }) => <Badge variant={status === 'present' ? 'default' : status === 'absent' ? 'destructive' : 'secondary'} className={cn(status === 'present' && 'bg-green-500')}>{status}</Badge>,
     },
     {
       accessorKey: 'adminStatus',
       header: 'Admin Status',
-      cell: (row) => <Badge className={cn('border-0', getAdminStatusBadgeVariant(row.adminStatus))}>{row.adminStatus}</Badge>,
+      cell: ({ adminStatus }) => <Badge variant={adminStatus === 'Approved' ? 'default' : adminStatus === 'Rejected' ? 'destructive' : 'secondary'} className={cn(adminStatus === 'Approved' && 'bg-green-500')}>{adminStatus}</Badge>,
     },
     {
         accessorKey: 'review',

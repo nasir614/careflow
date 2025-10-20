@@ -14,51 +14,36 @@ import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const getStatusBadgeClass = (status: EnrichedBilling['status']) => {
-  switch (status) {
-    case 'Paid':
-      return 'badge-success';
-    case 'Submitted':
-      return 'badge-info';
-    case 'Denied':
-      return 'badge-danger';
-    case 'Pending':
-    default:
-      return 'badge-warning';
-  }
-};
-
-
 const columns: ColumnDef<EnrichedBilling>[] = [
   {
     accessorKey: 'invoiceNo',
     header: 'Invoice #',
-    cell: (row) => row.invoiceNo,
+    cell: ({ invoiceNo }) => invoiceNo,
   },
   {
     accessorKey: 'scheduleId',
     header: 'Schedule ID',
-    cell: (row) => `SCH-${row.scheduleId}`,
+    cell: ({ scheduleId }) => `SCH-${scheduleId}`,
   },
   {
     accessorKey: 'clientName',
     header: 'Client',
-    cell: (row) => row.clientName,
+    cell: ({ clientName }) => clientName,
   },
   {
     accessorKey: 'serviceDate',
     header: 'Service Date',
-    cell: (row) => row.serviceDate,
+    cell: ({ serviceDate }) => serviceDate,
   },
   {
     accessorKey: 'amount',
     header: 'Amount',
-    cell: (row) => `$${row.amount.toFixed(2)}`,
+    cell: ({ amount }) => `$${amount.toFixed(2)}`,
   },
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <Badge className={cn('border-0', getStatusBadgeClass(row.status))}>{row.status}</Badge>,
+    cell: ({ status }) => <Badge variant={status === 'Paid' ? 'default' : status === 'Denied' ? 'destructive' : 'secondary'} className={cn(status === 'Paid' && 'bg-green-500')}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',

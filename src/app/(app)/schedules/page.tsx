@@ -20,18 +20,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 
-const getStatusBadgeClass = (status: Schedule['status']) => {
-  switch (status) {
-    case 'active':
-      return 'badge-success';
-    case 'pending':
-      return 'badge-warning';
-    case 'expired':
-    default:
-      return 'badge-danger';
-  }
-};
-
 const dayAbbreviations: { [key: string]: string } = {
   monday: 'M', tuesday: 'T', wednesday: 'W', thursday: 'Th',
   friday: 'F', saturday: 'Sa', sunday: 'Su',
@@ -42,53 +30,53 @@ const columns = (servicePlans: ServicePlan[]): ColumnDef<Schedule>[] => [
   { 
     accessorKey: 'id', 
     header: 'Schedule ID', 
-    cell: (row) => `SCH-${row.id}` 
+    cell: ({ id }) => `SCH-${id}` 
   },
-  { accessorKey: 'clientName', header: 'Client', cell: (row) => row.clientName },
-  { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
-  { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
+  { accessorKey: 'clientName', header: 'Client', cell: ({ clientName }) => clientName },
+  { accessorKey: 'staffName', header: 'Staff', cell: ({ staffName }) => staffName },
+  { accessorKey: 'serviceType', header: 'Service', cell: ({ serviceType }) => serviceType },
   {
     accessorKey: 'servicePlanId',
     header: 'Service Plan Period',
-    cell: (row) => {
-      const plan = servicePlans.find(p => p.id === row.servicePlanId);
+    cell: ({ servicePlanId }) => {
+      const plan = servicePlans.find(p => p.id === servicePlanId);
       return <div className="text-xs min-w-[80px]">{plan ? `${plan.startDate} → ${plan.endDate}` : 'N/A'}</div>;
     }
   },
-  { accessorKey: 'startDate', header: 'Schedule Period', cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate} → {row.endDate}</div> },
+  { accessorKey: 'startDate', header: 'Schedule Period', cell: ({ startDate, endDate }) => <div className="text-xs min-w-[80px]">{startDate} → {endDate}</div> },
   {
     accessorKey: 'days',
     header: 'Days & Time',
-    cell: (row) => (
+    cell: ({ days, timeInAM, timeOutAM, timeInPM, timeOutPM }) => (
       <div>
         <div className="flex gap-1">
           {Object.keys(dayAbbreviations).map(day => (
             <div key={day} className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold',
-              row.days.map(d => d.toLowerCase()).includes(day) ? 'bg-primary/20 text-primary' : 'bg-gray-100 text-gray-500'
+              days.map(d => d.toLowerCase()).includes(day) ? 'bg-primary/20 text-primary' : 'bg-gray-100 text-gray-500'
             )} title={day.charAt(0).toUpperCase() + day.slice(1)}>
               {dayAbbreviations[day]}
             </div>
           ))}
         </div>
         <div className="text-xs text-muted-foreground mt-1">
-          {row.timeInAM}{row.timeOutAM && `-${row.timeOutAM}`}
-          {row.timeInPM && `, ${row.timeInPM}-${row.timeOutPM}`}
+          {timeInAM}{timeOutAM && `-${timeOutAM}`}
+          {timeInPM && `, ${timeInPM}-${timeOutPM}`}
         </div>
       </div>
     )
   },
   {
-    accessorKey: 'usedUnits', header: 'Unit Usage', cell: (row) => {
-      const percentage = row.totalUnits > 0 ? (row.usedUnits / row.totalUnits) * 100 : 0;
+    accessorKey: 'usedUnits', header: 'Unit Usage', cell: ({ usedUnits, totalUnits }) => {
+      const percentage = totalUnits > 0 ? (usedUnits / totalUnits) * 100 : 0;
       return (
         <div className="min-w-[120px]">
-          <div className="text-sm font-medium text-foreground">{row.usedUnits} / {row.totalUnits} hrs</div>
+          <div className="text-sm font-medium text-foreground">{usedUnits} / {totalUnits} hrs</div>
           <Progress value={percentage} className="h-2 mt-1" />
         </div>
       )
     }
   },
-  { accessorKey: 'status', header: 'Status', cell: (row) => <Badge className={cn('border-0', getStatusBadgeClass(row.status))}>{row.status}</Badge> },
+  { accessorKey: 'status', header: 'Status', cell: ({ status }) => <Badge variant={status === 'active' ? 'default' : status === 'expired' ? 'destructive' : 'secondary'} className={cn(status === 'active' && 'bg-green-500')}>{status}</Badge> },
   { accessorKey: 'actions', header: 'Actions', cell: () => null },
 ];
 

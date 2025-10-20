@@ -1,7 +1,7 @@
 import { Client, EnrichedSchedule, EnrichedAuthorization, EnrichedServicePlan } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Phone, Mail, MapPin, FileText, UserCog, ClipboardCheck, DollarSign, FileCheck, Calendar, Briefcase } from 'lucide-react';
+import { Users, Phone, Mail, MapPin, Briefcase, Calendar, FileCheck } from 'lucide-react';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
@@ -37,11 +37,11 @@ const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.E
 );
 
 const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
-  { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
-  { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
-  { accessorKey: 'days', header: 'Days', cell: (row) => Array.isArray(row.days) ? row.days.join(', ') : row.days },
-  { accessorKey: 'hoursPerDay', header: 'Hours', cell: (row) => `${row.hoursPerDay}h/day` },
-  { accessorKey: 'status', header: 'Status', cell: (row) => <Badge variant={row.status === 'active' ? 'default' : 'destructive'}>{row.status}</Badge> },
+  { accessorKey: 'staffName', header: 'Staff', cell: ({ staffName }) => staffName },
+  { accessorKey: 'serviceType', header: 'Service', cell: ({ serviceType }) => serviceType },
+  { accessorKey: 'days', header: 'Days', cell: ({ days }) => Array.isArray(days) ? days.join(', ') : days },
+  { accessorKey: 'hoursPerDay', header: 'Hours', cell: ({ hoursPerDay }) => `${hoursPerDay}h/day` },
+  { accessorKey: 'status', header: 'Status', cell: ({ status }) => <Badge variant={status === 'active' ? 'default' : 'destructive'}>{status}</Badge> },
 ];
 
 export default function ViewClientModal({ client }: ViewClientModalProps) {
@@ -67,14 +67,6 @@ export default function ViewClientModal({ client }: ViewClientModalProps) {
          </div>
        </InfoBlock>
        
-       <InfoBlock title="Case Manager" icon={UserCog}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem label="Name" value={client.caseManager} />
-                <InfoItem label="Phone" value={client.caseManagerPhone} icon={Phone} />
-                <InfoItem label="Email" value={client.caseManagerEmail} icon={Mail} />
-                <InfoItem label="Notes" value={"Oversees PASSPORT services and authorizations."} />
-            </div>
-       </InfoBlock>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
            <InfoBlock title="Schedules" icon={Calendar}>
              {clientSchedules.length > 0 ? (
