@@ -187,84 +187,68 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const handleBulkAddAttendance = (data: BulkAttendanceData) => {
     setIsLoading(true);
     setTimeout(() => {
-        const { clientIds, staffId, serviceType, dailyLogs, ...rest } = data;
-        const staffMember = staff.find(s => s.id === staffId);
-        if (!staffMember) {
-            toast({ variant: 'destructive', title: "Error", description: "Invalid staff member selected." });
-            setIsLoading(false);
-            return;
-        }
-
-        const newAttendanceLogs: Attendance[] = [];
-        let skippedCount = 0;
-        const clientId = clientIds[0]; // Assuming single client selection from new form
-        const client = clients.find(c => c.id === clientId);
-
-        if (client && dailyLogs) { // New dailyLogs based logic
-            dailyLogs.forEach(log => {
-                const alreadyExists = attendance.some(a => a.clientId === clientId && a.date === log.date);
-                if (!alreadyExists) {
-                    const newLog: Attendance = {
-                        id: Date.now() + newAttendanceLogs.length,
-                        clientId,
-                        clientName: `${client.firstName} ${client.lastName}`,
-                        staffId,
-                        staffName: staffMember.name,
-                        date: log.date,
-                        totalHours: calculateTotalHours(log),
-                        createdAt: new Date().toISOString(),
-                        serviceType,
-                        ...rest,
-                        ...log,
-                    };
-                    newAttendanceLogs.push(newLog);
-                } else {
-                    skippedCount++;
-                }
-            });
-        } else if (data.startDate && data.endDate) { // Fallback to old logic
-            const interval = eachDayOfInterval({ start: new Date(data.startDate), end: new Date(data.endDate) });
-            interval.forEach(day => {
-                const dateStr = format(day, 'yyyy-MM-dd');
-                clientIds.forEach(clientId => {
-                    const client = clients.find(c => c.id === clientId);
-                    if (client) {
-                        const alreadyExists = attendance.some(a => a.clientId === clientId && a.date === dateStr);
-                        if (!alreadyExists) {
-                            const newLog: Attendance = {
-                                id: Date.now() + newAttendanceLogs.length,
-                                clientId: clientId,
-                                clientName: `${client.firstName} ${client.lastName}`,
-                                staffId: staffId,
-                                staffName: staffMember.name,
-                                date: dateStr,
-                                totalHours: calculateTotalHours(rest),
-                                createdAt: new Date().toISOString(),
-                                serviceType,
-                                ...rest,
-                            };
-                            newAttendanceLogs.push(newLog);
-                        } else {
-                            skippedCount++;
-                        }
-                    }
-                });
-            });
-        }
-
-        if (newAttendanceLogs.length > 0) {
-            setAttendance(prev => [...prev, ...newAttendanceLogs]);
-        }
-
-        toast({
-            title: "Bulk Add Complete",
-            description: `${newAttendanceLogs.length} new attendance logs created. ${skippedCount > 0 ? `${skippedCount} duplicates were skipped.` : ''}`
-        });
-
+      const { clientIds, staffId, serviceType, dailyLogs, ...rest } = data;
+      const staffMember = staff.find(s => s.id === staffId);
+      if (!staffMember) {
+        toast({ variant: 'destructive', title: "Error", description: "Invalid staff member selected." });
         setIsLoading(false);
-        closeModal();
+        return;
+      }
+  
+      let createdCount = 0;
+      let updatedCount = 0;
+      const clientId = clientIds[0];
+      const client = clients.find(c => c.id === clientId);
+  
+      if (client && dailyLogs) {
+        let tempAttendance = [...attendance];
+  
+        dailyLogs.forEach(log => {
+          const existingLogIndex = tempAttendance.findIndex(a => a.clientId === clientId && a.date === log.date);
+  
+          const logData = {
+            clientId,
+            clientName: `${client.firstName} ${client.lastName}`,
+            staffId,
+            staffName: staffMember.name,
+            date: log.date,
+            totalHours: calculateTotalHours(log),
+            createdAt: new Date().toISOString(),
+            serviceType,
+            ...rest,
+            ...log,
+          };
+  
+          if (existingLogIndex !== -1) {
+            // Update existing log
+            const existingLog = tempAttendance[existingLogIndex];
+            tempAttendance[existingLogIndex] = { ...existingLog, ...logData };
+            updatedCount++;
+          } else {
+            // Add new log
+            const newLog: Attendance = {
+              id: Date.now() + createdCount,
+              ...logData,
+            };
+            tempAttendance.push(newLog);
+            createdCount++;
+          }
+        });
+  
+        setAttendance(tempAttendance);
+  
+        toast({
+          title: "Bulk Process Complete",
+          description: `${createdCount} new logs created. ${updatedCount} existing logs updated.`
+        });
+      } else {
+        toast({ variant: 'destructive', title: "Error", description: "Client not found or no daily logs provided." });
+      }
+  
+      setIsLoading(false);
+      closeModal();
     }, 1000);
-};
+  };
 
   const generateInvoicesFromLogs = () => {
     setIsLoading(true);
