@@ -18,7 +18,7 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between mt-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
       <div className="text-sm text-muted-foreground">
         Showing {startIdx + 1} to {endIdx} of {totalItems} results
       </div>
@@ -28,11 +28,12 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="px-2"
         >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Previous
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline ml-1">Previous</span>
         </Button>
-        <div className="text-sm font-medium">
+        <div className="text-sm font-medium px-2">
           Page {currentPage} of {totalPages}
         </div>
         <Button
@@ -40,9 +41,10 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="px-2"
         >
-          Next
-          <ChevronRight className="w-4 h-4 ml-1" />
+          <span className="hidden sm:inline mr-1">Next</span>
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
     </div>

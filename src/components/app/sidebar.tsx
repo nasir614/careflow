@@ -17,9 +17,11 @@ import {
   UserCog,
   AlertTriangle,
   ClipboardCheck,
-  GraduationCap
+  GraduationCap,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 
 const navGroups = [
   {
@@ -71,37 +73,62 @@ const NavItem = ({ item, pathname }: { item: { name: string; href: string; icon:
   );
 };
 
-
-export function Sidebar() {
-  const pathname = usePathname();
-
-  return (
-    <aside className="w-64 bg-white/90 backdrop-blur-sm border-r border-gray-200 shadow-lg flex flex-col no-print">
-      <div className="flex items-center p-6">
-        <div className="h-8 w-8 bg-gradient-primary rounded-lg"></div>
-        <h2 className="ml-3 text-xl font-bold font-display bg-gradient-accent bg-clip-text text-transparent">
-          CareFlow
-        </h2>
-      </div>
-
-      <nav className="flex-1 px-4 space-y-4 overflow-y-auto">
-        {navGroups.map((group) => (
-          <div key={group.title} className="mb-2">
-            <h4 className="text-xs uppercase font-semibold text-gray-500 mb-2 tracking-wide px-3">{group.title}</h4>
-            <div className="space-y-1">
-              {group.items.map((item) => (
-                <NavItem key={item.name} item={item} pathname={pathname} />
-              ))}
+const SidebarContent = () => {
+    const pathname = usePathname();
+    return (
+        <>
+            <div className="flex items-center p-6">
+                <div className="h-8 w-8 bg-gradient-primary rounded-lg"></div>
+                <h2 className="ml-3 text-xl font-bold font-display bg-gradient-accent bg-clip-text text-transparent">
+                CareFlow
+                </h2>
             </div>
-          </div>
-        ))}
-      </nav>
 
-      <div className="border-t p-5 text-sm text-gray-500 mt-auto">
-        <a href="#" className="flex items-center gap-2 hover:text-indigo-500 transition">
-          <Settings className="h-4 w-4" /> Settings
-        </a>
-      </div>
-    </aside>
+            <nav className="flex-1 px-4 space-y-4 overflow-y-auto">
+                {navGroups.map((group) => (
+                <div key={group.title} className="mb-2">
+                    <h4 className="text-xs uppercase font-semibold text-gray-500 mb-2 tracking-wide px-3">{group.title}</h4>
+                    <div className="space-y-1">
+                    {group.items.map((item) => (
+                        <NavItem key={item.name} item={item} pathname={pathname} />
+                    ))}
+                    </div>
+                </div>
+                ))}
+            </nav>
+
+            <div className="border-t p-5 text-sm text-gray-500 mt-auto">
+                <a href="#" className="flex items-center gap-2 hover:text-indigo-500 transition">
+                <Settings className="h-4 w-4" /> Settings
+                </a>
+            </div>
+        </>
+    );
+};
+
+
+export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (open: boolean) => void }) {
+  return (
+    <>
+      {/* Mobile Sidebar */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogOverlay className="md:hidden bg-black/40" />
+          <DialogContent 
+              side="left" 
+              className="md:hidden w-64 bg-white/90 backdrop-blur-sm p-0 m-0 border-r border-gray-200 h-full flex flex-col"
+              onInteractOutside={() => setIsOpen(false)}
+          >
+              <SidebarContent />
+              <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                  <X className="w-5 h-5" />
+              </button>
+          </DialogContent>
+      </Dialog>
+      
+      {/* Desktop Sidebar */}
+      <aside className="w-64 bg-white/90 backdrop-blur-sm border-r border-gray-200 shadow-lg flex-col no-print hidden md:flex">
+        <SidebarContent />
+      </aside>
+    </>
   );
 }

@@ -11,9 +11,9 @@ interface DeleteModalProps {
 export default function DeleteModal({ onConfirm, onCancel, isLoading }: DeleteModalProps) {
   return (
     <>
-        <div className="space-y-4 p-4">
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+        <div className="space-y-4 p-4 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
                     <AlertCircle className="w-6 h-6 text-destructive" />
                 </div>
                 <div>
@@ -21,13 +21,13 @@ export default function DeleteModal({ onConfirm, onCancel, isLoading }: DeleteMo
                     <p className="text-sm text-muted-foreground">This action is permanent and cannot be undone.</p>
                 </div>
             </div>
-            <p>Are you sure you want to delete this item? All associated data will be removed.</p>
+            <p className="text-sm">Are you sure you want to delete this item? All associated data will be removed.</p>
         </div>
-        <div className="flex justify-end gap-3 p-4 bg-muted/50 rounded-b-lg">
-            <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 p-4 bg-muted/50 rounded-b-lg">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={onCancel} disabled={isLoading}>
                 Cancel
             </Button>
-            <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
+            <Button className="w-full sm:w-auto" variant="destructive" onClick={onConfirm} disabled={isLoading}>
                 {isLoading ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

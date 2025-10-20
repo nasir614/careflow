@@ -16,7 +16,7 @@ export function PageHeader({ title, breadcrumbs, children }: PageHeaderProps) {
   return (
     <div className="mb-8 print:hidden">
       <nav aria-label="Breadcrumb" className="mb-2">
-        <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <ol className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
           <li>
             <Link href="/dashboard" className="flex items-center gap-1.5 hover:text-foreground">
               <Home className="w-4 h-4" />
@@ -36,7 +36,7 @@ export function PageHeader({ title, breadcrumbs, children }: PageHeaderProps) {
           ))}
         </ol>
       </nav>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-display font-semibold text-gray-800 tracking-tight">{title}</h1>
         <div className="flex items-center gap-2">
             {children}

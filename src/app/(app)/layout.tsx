@@ -9,13 +9,18 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div className="flex h-screen bg-transparent font-sans overflow-hidden">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <Header 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm}
+          onMenuClick={() => setSidebarOpen(true)} 
+        />
         <main className="flex-1 overflow-y-auto p-6 md:p-10" id="main-content">
           {children}
         </main>
