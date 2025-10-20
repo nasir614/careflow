@@ -37,7 +37,14 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
   const { openModal, clients } = useCareFlow();
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const unitUsage = schedule.totalUnits > 0 ? (schedule.usedUnits / schedule.totalUnits) * 100 : 0;
-  const daysRemaining = Math.ceil((new Date(schedule.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  
+  const endDate = new Date(schedule.endDate);
+  const today = new Date();
+  // Set time to 0 to compare dates only
+  endDate.setHours(0,0,0,0);
+  today.setHours(0,0,0,0);
+
+  const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
   const getStatusBadgeClass = (status: Schedule['status']) => {
     switch (status) {
@@ -73,7 +80,7 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
       <div className="grid grid-cols-3 gap-4">
         <StatBlock title="Units Remaining" value={schedule.totalUnits - schedule.usedUnits} color="border-primary" />
         <StatBlock title="Hours Per Day" value={`${schedule.hoursPerDay}h`} color="border-accent-foreground" />
-        <StatBlock title="Days Remaining" value={daysRemaining > 0 ? daysRemaining : 0} color={daysRemaining < 30 ? 'border-destructive' : 'border-green-500'} />
+        <StatBlock title="Days Remaining" value={daysRemaining >= 0 ? daysRemaining : 0} color={daysRemaining < 0 ? 'border-destructive' : (daysRemaining < 30 ? 'border-yellow-500' : 'border-green-500')} />
       </div>
 
       <div>

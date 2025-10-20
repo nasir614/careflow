@@ -7,11 +7,12 @@ import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Bot } from 'lucide-react';
+import { Bot, CalendarDays } from 'lucide-react';
 import type { Schedule } from '@/lib/types';
 import { optimizeCaregiverRoutes } from '@/ai/flows/optimize-caregiver-routes';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const getStatusBadgeClass = (status: Schedule['status']) => {
   switch (status) {
@@ -106,18 +107,76 @@ const columns: ColumnDef<Schedule>[] = [
   },
 ];
 
+
+const servicePlanColumns: ColumnDef<Schedule>[] = [
+  {
+    accessorKey: 'clientName',
+    header: 'Client',
+    cell: (row) => row.clientName,
+  },
+  {
+    accessorKey: 'serviceCode',
+    header: 'Service Code',
+    cell: (row) => row.serviceCode,
+  },
+  {
+    accessorKey: 'frequency',
+    header: 'Frequency',
+    cell: (row) => row.frequency,
+  },
+  {
+    accessorKey: 'days',
+    header: 'Service Days (AM/PM)',
+    cell: (row) => (
+      <div className="flex gap-2">
+        {allDays.map(day => {
+          const isScheduled = Array.isArray(row.days) && row.days.map(d => d.toLowerCase()).includes(day);
+          return (
+            <div key={day} className="flex flex-col items-center">
+              <div className="text-xs text-muted-foreground">{day.charAt(0).toUpperCase() + day.slice(1,3)}</div>
+              <div className={cn('flex h-5 w-5 mt-1 items-center justify-center rounded-sm text-xs font-bold', isScheduled ? 'bg-blue-100 text-blue-700' : 'bg-muted')}>
+                {isScheduled ? '✓' : '-'}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'endDate',
+    header: 'End Date',
+    cell: (row) => row.endDate,
+  },
+  {
+    accessorKey: 'actions',
+    header: 'Actions',
+    cell: () => null,
+  },
+];
+
 const ITEMS_PER_PAGE = 8;
+const SERVICE_PLANS_PER_PAGE = 5;
 
 export default function SchedulesPage() {
   const { schedules, openModal, clients, staff } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentPlansPage, setCurrentPlansPage] = useState(1);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const { toast } = useToast();
 
+  const activeSchedules = useMemo(() => schedules.filter(s => s.status !== 'expired'), [schedules]);
+  const pastSchedules = useMemo(() => schedules.filter(s => s.status === 'expired'), [schedules]);
+
   const paginatedSchedules = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return schedules.slice(start, start + ITEMS_PER_PAGE);
-  }, [schedules, currentPage]);
+    return activeSchedules.slice(start, start + ITEMS_PER_PAGE);
+  }, [activeSchedules, currentPage]);
+
+  const paginatedServicePlans = useMemo(() => {
+    const start = (currentPlansPage - 1) * SERVICE_PLANS_PER_PAGE;
+    return pastSchedules.slice(start, start + SERVICE_PLANS_PER_PAGE);
+  }, [pastSchedules, currentPlansPage]);
   
   const handleOptimizeRoutes = async () => {
     setIsOptimizing(true);
@@ -160,7 +219,7 @@ export default function SchedulesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader title="Schedules" breadcrumbs={[{ name: 'Schedules' }]}>
         <Button variant="outline" size="sm" onClick={handleOptimizeRoutes} disabled={isOptimizing}>
           <Bot className="w-4 h-4 mr-2" />
@@ -168,20 +227,46 @@ export default function SchedulesPage() {
         </Button>
       </PageHeader>
       
-      <DataTable
-        columns={columns}
-        data={paginatedSchedules}
-        onView={(row) => openModal('view', 'schedules', row)}
-        onEdit={(row) => openModal('edit', 'schedules', row)}
-        onDelete={(row) => openModal('delete', 'schedules', row)}
-      />
+      <div>
+        <DataTable
+          columns={columns}
+          data={paginatedSchedules}
+          onView={(row) => openModal('view', 'schedules', row)}
+          onEdit={(row) => openModal('edit', 'schedules', row)}
+          onDelete={(row) => openModal('delete', 'schedules', row)}
+        />
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={schedules.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+        <Pagination
+          currentPage={currentPage}
+          totalItems={activeSchedules.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+            <CalendarDays className="w-6 h-6 text-primary" />
+            Service Plans (Past Schedules)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+           <DataTable
+              columns={servicePlanColumns}
+              data={paginatedServicePlans}
+              onView={(row) => openModal('view', 'schedules', row)}
+              onEdit={(row) => openModal('edit', 'schedules', row)}
+              onDelete={(row) => openModal('delete', 'schedules', row)}
+            />
+            <Pagination
+              currentPage={currentPlansPage}
+              totalItems={pastSchedules.length}
+              itemsPerPage={SERVICE_PLANS_PER_PAGE}
+              onPageChange={setCurrentPlansPage}
+            />
+        </CardContent>
+      </Card>
     </div>
   );
 }
