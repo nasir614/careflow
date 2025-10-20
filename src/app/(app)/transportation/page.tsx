@@ -10,6 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const columns: ColumnDef<Transportation>[] = [
   {
+    accessorKey: 'id',
+    header: 'Trip ID',
+    cell: (row) => `TRIP-${row.id}`,
+  },
+  {
     accessorKey: 'client',
     header: 'Client',
     cell: (row) => row.client,
