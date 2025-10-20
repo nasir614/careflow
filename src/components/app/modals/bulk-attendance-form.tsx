@@ -33,6 +33,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [selectedService, setSelectedService] = useState<string>('');
+  const [selectedBillingCode, setSelectedBillingCode] = useState<string>('');
   
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -48,12 +49,14 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
   });
 
   useEffect(() => {
-    if (!selectedClientId || !selectedStaffId || !selectedService) {
+    if (!selectedClientId) {
         setDailyLogs([]);
         return;
     }
+    
     const daysInMonth = getDaysInMonth(new Date(currentYear, currentMonth));
-    const logs: DailyLog[] = [];
+    const newLogs: DailyLog[] = [];
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth, day);
       const dateString = format(date, 'yyyy-MM-dd');
@@ -64,17 +67,17 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
       );
 
       if (existingLog) {
-         logs.push({
+         newLogs.push({
             date: dateString,
             status: existingLog.status,
             checkInAM: existingLog.checkInAM || '',
             checkOutAM: existingLog.checkOutAM || '',
             checkInPM: existingLog.checkInPM || '',
             checkOutPM: existingLog.checkOutPM || '',
-            notes: existingLog.notes || '',
+notes: existingLog.notes || '',
         });
       } else {
-        logs.push({
+        newLogs.push({
             date: dateString,
             status: 'present',
             checkInAM: '',
@@ -85,8 +88,26 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
         });
       }
     }
-    setDailyLogs(logs);
-  }, [selectedClientId, selectedStaffId, selectedService, currentMonth, currentYear]);
+
+    setDailyLogs(prevLogs => {
+      const prevLogsMap = new Map(prevLogs.map(l => [l.date, l]));
+      const mergedLogs = newLogs.map(log => {
+        if(prevLogsMap.has(log.date)) {
+          const prevLog = prevLogsMap.get(log.date)!;
+          // If we are regenerating the month, keep user's modifications if any field is filled
+          const isModified = prevLog.status !== 'present' || prevLog.checkInAM || prevLog.checkOutAM || prevLog.checkInPM || prevLog.checkOutPM || prevLog.notes;
+          return isModified ? prevLog : log;
+        }
+        return log;
+      });
+      const customDates = prevLogs.filter(l => !newLogs.some(nl => nl.date === l.date));
+      const finalLogs = [...mergedLogs, ...customDates];
+      finalLogs.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return finalLogs;
+    });
+
+  }, [selectedClientId, currentMonth, currentYear, attendance]);
+
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
     const newLogs = [...dailyLogs];
@@ -126,8 +147,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
     const client = clients.find(c => String(c.id) === selectedClientId);
     const staffMember = staff.find(s => String(s.id) === selectedStaffId);
 
-    if (!client || !staffMember || !selectedService) {
-        alert('Please select client, staff, and service.');
+    if (!client || !staffMember || !selectedService || !selectedBillingCode) {
+        alert('Please select client, staff, service, and billing code.');
         return;
     }
 
@@ -137,6 +158,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
       client,
       staff: staffMember,
       serviceType: selectedService,
+      billingCode: selectedBillingCode,
       logs: logsToSubmit,
     });
   };
@@ -149,7 +171,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
         <div className="space-y-4 p-1">
             <Card className="bg-muted/30">
                 <CardContent className="p-4 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Select value={selectedClientId} onValueChange={setSelectedClientId} required>
                             <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
                             <SelectContent>
@@ -166,6 +188,12 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                             <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
                             <SelectContent>
                                 {['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Select value={selectedBillingCode} onValueChange={setSelectedBillingCode} required>
+                            <SelectTrigger><SelectValue placeholder="Billing Code" /></SelectTrigger>
+                            <SelectContent>
+                                {['T2021', 'T1019', 'S5150', 'T1005'].map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -186,7 +214,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                 </CardContent>
             </Card>
 
-             {selectedClientId && selectedStaffId && selectedService && (
+             {selectedClientId && (
              <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Apply Defaults to All</CardTitle>
@@ -247,7 +275,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                           </div>
                       </div>
                     );
-                  }) : <p className="text-muted-foreground text-center py-4">Please select a client, staff, and service to see attendance logs.</p>}
+                  }) : <p className="text-muted-foreground text-center py-4">Please select a client to see attendance logs.</p>}
                   </div>
                   <div className="mt-4 flex justify-center">
                     <Input type="date" className="w-48" onChange={(e) => addCustomDate(e.target.valueAsDate ?? undefined)} />

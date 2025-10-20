@@ -30,7 +30,7 @@ import type {
   Authorization,
   Attendance
 } from '@/lib/types';
-import { eachDayOfInterval, format, isMatch, parse, differenceInMinutes } from 'date-fns';
+import { eachDayOfInterval, format, isMatch, parse, differenceInMinutes, isValid } from 'date-fns';
 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
@@ -175,7 +175,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleBulkAddAttendance = (data: any) => {
-    const { client, staff, serviceType, logs } = data;
+    const { client, staff, serviceType, billingCode, logs } = data;
     let createdCount = 0;
     let updatedCount = 0;
 
@@ -185,7 +185,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     logs.forEach((log: any) => {
       if (log.status !== 'present' || !log.checkInAM || !log.checkOutAM) {
           // You might want to handle absent/excused logs differently or just skip.
-          return;
+          // For now, we will create/update them to store the status and notes
       }
       const calculateHours = (timeInStr: string, timeOutStr: string) => {
         if (!timeInStr || !timeOutStr) return 0;
@@ -217,7 +217,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         checkOutPM: log.checkOutPM,
         totalHours: totalHours,
         location: 'Daycare Center',
-        billingCode: 'T2021', // This should be dynamic based on service
+        billingCode: billingCode,
         status: log.status,
         notes: log.notes,
         createdAt: new Date().toISOString(),
@@ -319,7 +319,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                 clientName: findClientName(data.clientId),
                 staffName: findStaffName(data.staffId),
                 totalHours: totalHours,
-                billingCode: 'T2021', // Example
                 location: 'Daycare Center'
              };
              setAttendance(prev => [...prev, newItem]);
