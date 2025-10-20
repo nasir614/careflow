@@ -30,6 +30,22 @@ export type Staff = {
   avatarUrl?: string;
 };
 
+export type StaffCredential = {
+  id: number;
+  staffId: number;
+  staffName: string;
+  role: string;
+  credential: string;
+  training: string;
+  hrDocument: string;
+  startDate: string;
+  expirationDate: string;
+  renewalDate: string;
+  isCritical: boolean;
+  status: 'Active' | 'Expired' | 'Expiring Soon';
+  actionTaken: string;
+};
+
 export type Attendance = {
   id: number;
   clientId: number;
@@ -105,6 +121,6 @@ export type Schedule = {
   createdAt: string;
 };
 
-export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation';
+export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials';
 
-export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation;
+export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential;

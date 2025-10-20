@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Loader2, Save } from 'lucide-react';
 import type { DataModule, AnyData } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
@@ -20,7 +22,7 @@ interface GenericFormProps {
 type FieldConfig = {
     name: string;
     label: string;
-    type: 'text' | 'tel' | 'email' | 'date' | 'time' | 'number' | 'select' | 'textarea';
+    type: 'text' | 'tel' | 'email' | 'date' | 'time' | 'number' | 'select' | 'textarea' | 'checkbox';
     required?: boolean;
     options?: { value: string; label: string }[] | string[];
     placeholder?: string;
@@ -30,8 +32,23 @@ type FieldConfig = {
 const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): FieldConfig[] => {
     const clientOptions = clients.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }));
     const staffOptions = staff.map(s => ({ value: s.id.toString(), label: s.name }));
+    const roleOptions = staff.map(s => s.role);
 
     switch (module) {
+        case 'staffCredentials':
+            return [
+                { name: 'staffId', label: 'Staff Member', type: 'select', options: staffOptions, required: true },
+                { name: 'role', label: 'Role', type: 'select', options: roleOptions, required: true },
+                { name: 'credential', label: 'Credential', type: 'text', required: true },
+                { name: 'training', label: 'Training', type: 'text' },
+                { name: 'hrDocument', label: 'HR Document', type: 'text' },
+                { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+                { name: 'expirationDate', label: 'Expiration Date', type: 'date', required: true },
+                { name: 'renewalDate', label: 'Renewal Date', type: 'date' },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Expiring Soon'], required: true },
+                { name: 'actionTaken', label: 'Action Taken', type: 'text' },
+                { name: 'isCritical', label: 'Critical Requirement', type: 'checkbox' },
+            ];
         case 'staff':
             return [
                 { name: 'name', label: 'Full Name', type: 'text', required: true },
@@ -98,9 +115,13 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     if (item) {
       setFormData(item);
     } else {
-      setFormData({});
+      const defaults: Partial<AnyData> = {};
+      if (module === 'staffCredentials') {
+          defaults.isCritical = false;
+      }
+      setFormData(defaults);
     }
-  }, [item]);
+  }, [item, module]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -110,6 +131,10 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -133,7 +158,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
               <SelectValue placeholder={`Select ${label}`} />
             </SelectTrigger>
             <SelectContent>
-              {options?.map(opt => 
+              {[...new Set(options)]?.map(opt => 
                 typeof opt === 'string' 
                 ? <SelectItem key={opt} value={opt}>{opt}</SelectItem> 
                 : <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -151,6 +176,19 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         </div>
       );
     }
+    if (type === 'checkbox') {
+        return (
+          <div {...commonProps} className={`flex items-center gap-2 pt-6 ${className || ''}`}>
+            <Checkbox
+              id={name}
+              name={name}
+              checked={formData[name as keyof AnyData] as boolean | undefined}
+              onCheckedChange={(checked) => handleCheckboxChange(name, !!checked)}
+            />
+            <Label htmlFor={name} className="font-medium text-muted-foreground">{label}</Label>
+          </div>
+        );
+      }
     return (
       <div {...commonProps}>
         <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
@@ -170,7 +208,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         <Button type="submit" disabled={isLoading} className="rounded-full">
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          {item ? 'Save Changes' : `Create ${module.slice(0, -1)}`}
+          {item ? 'Save Changes' : `Create ${module === 'staffCredentials' ? 'Credential' : module.slice(0, -1)}`}
         </Button>
       </div>
     </form>

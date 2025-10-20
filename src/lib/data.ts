@@ -1,4 +1,4 @@
-import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule } from './types';
+import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, StaffCredential } from './types';
 
 export const initialClients: Client[] = [
     { 
@@ -83,6 +83,13 @@ export const initialClients: Client[] = [
     { id: 1, name: 'Dr. Sarah Mitchell', role: 'Medical Director', phone: '614-111-2222', email: 'sarah.m@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Medical', avatarUrl: "https://picsum.photos/seed/101/100/100" },
     { id: 2, name: 'John Caregiver', role: 'Senior Caregiver', phone: '614-222-3333', email: 'john.c@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Care', avatarUrl: "https://picsum.photos/seed/102/100/100" },
     { id: 3, name: 'Lisa Nurse', role: 'Registered Nurse', phone: '614-333-4444', email: 'lisa.n@carecloud.com', status: 'Active', schedule: 'Tue-Sat', department: 'Medical', avatarUrl: "https://picsum.photos/seed/103/100/100" },
+  ];
+
+  export const initialStaffCredentials: StaffCredential[] = [
+    { id: 1, staffId: 1, staffName: 'Dr. Sarah Mitchell', role: 'Medical Director', credential: 'MD License', training: 'Advanced Cardiac Life Support', hrDocument: 'Annual Contract', startDate: '2024-01-01', expirationDate: '2025-12-31', renewalDate: '2025-12-01', isCritical: true, status: 'Active', actionTaken: 'None' },
+    { id: 2, staffId: 2, staffName: 'John Caregiver', role: 'Senior Caregiver', credential: 'CNA', training: 'First Aid', hrDocument: 'Employment Agreement', startDate: '2023-05-15', expirationDate: '2025-05-14', renewalDate: '2025-04-15', isCritical: true, status: 'Active', actionTaken: 'None' },
+    { id: 3, staffId: 3, staffName: 'Lisa Nurse', role: 'Registered Nurse', credential: 'RN License', training: 'Basic Life Support', hrDocument: 'Background Check', startDate: '2022-08-01', expirationDate: '2024-07-31', renewalDate: '2024-07-01', isCritical: false, status: 'Expired', actionTaken: 'Renewal notice sent' },
+    { id: 4, staffId: 3, staffName: 'Lisa Nurse', role: 'Registered Nurse', credential: 'CPR Certification', training: 'N/A', hrDocument: 'N/A', startDate: '2024-09-01', expirationDate: '2025-08-31', renewalDate: '2025-08-01', isCritical: true, status: 'Expiring Soon', actionTaken: 'Scheduled for class' },
   ];
 
   export const initialAttendance: Attendance[] = [

@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { initialClients, initialStaff, initialAttendance, initialCompliance, initialBilling, initialTransportation, initialSchedules } from '@/lib/data';
-import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, DataModule, AnyData } from '@/lib/types';
+import { initialClients, initialStaff, initialAttendance, initialCompliance, initialBilling, initialTransportation, initialSchedules, initialStaffCredentials } from '@/lib/data';
+import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, DataModule, AnyData, StaffCredential } from '@/lib/types';
 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | 'suggest-caregiver' | 'optimize-routes' | '';
 
@@ -16,11 +16,13 @@ interface CareFlowContextType {
   billing: Billing[];
   transportation: Transportation[];
   schedules: Schedule[];
+  staffCredentials: StaffCredential[];
   
   // Handlers
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<Schedule[]>>;
+  setStaffCredentials: React.Dispatch<React.SetStateAction<StaffCredential[]>>;
   
   // Modal State
   modalOpen: boolean;
@@ -74,6 +76,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [billing, setBilling] = useState<Billing[]>(initialBilling);
   const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
+  const [staffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
   
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -123,6 +126,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'schedules': 
             setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); 
             break;
+          case 'staffCredentials': 
+            setStaffCredentials(prev => [...prev, newItem]); 
+            break;
           case 'attendance': 
             const client = clients.find(c => String(c.id) === String(newItem.clientId));
             const staffMember = staff.find(s => String(s.id) === String(newItem.staffId));
@@ -153,6 +159,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
           case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
+          case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
           case 'attendance': 
             const client = clients.find(c => String(c.id) === String(updatedItem.clientId));
             const staffMember = staff.find(s => String(s.id) === String(updatedItem.staffId));
@@ -181,6 +188,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'clients': setClients(prev => prev.filter(c => c.id !== item.id)); break;
           case 'staff': setStaff(prev => prev.filter(s => s.id !== item.id)); break;
           case 'schedules': setSchedules(prev => prev.filter(s => s.id !== item.id)); break;
+          case 'staffCredentials': setStaffCredentials(prev => prev.filter(c => c.id !== item.id)); break;
           case 'attendance': setAttendance(prev => prev.filter(a => a.id !== item.id)); break;
           case 'compliance': setCompliance(prev => prev.filter(c => c.id !== item.id)); break;
           case 'billing': setBilling(prev => prev.filter(b => b.id !== item.id)); break;
@@ -202,9 +210,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     billing,
     transportation,
     schedules,
+    staffCredentials,
     setClients,
     setStaff,
     setSchedules,
+    setStaffCredentials,
     modalOpen,
     modalType,
     activeModule,

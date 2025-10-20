@@ -20,7 +20,13 @@ export function ModalManager() {
     return null;
   }
 
-  const singularModule = activeModule.endsWith('s') ? activeModule.slice(0, -1) : activeModule;
+  const getSingularModuleName = (module: string) => {
+    if (module === 'staffCredentials') return 'Staff Credential';
+    if (module.endsWith('s')) return module.slice(0, -1);
+    return module;
+  }
+
+  const singularModule = getSingularModuleName(activeModule);
   const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
 
   const getTitle = () => {
@@ -66,7 +72,7 @@ export function ModalManager() {
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && activeModule === 'clients');
+  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && activeModule === 'clients') || (['add', 'edit'].includes(modalType) && activeModule === 'staffCredentials');
 
   return (
     <Dialog open={modalOpen} onOpenChange={closeModal}>

@@ -19,7 +19,8 @@ export function Header({
 
   const getModuleFromPath = (): DataModule | null => {
     const path = pathname.split('/').pop();
-    if (['clients', 'staff', 'schedules', 'attendance', 'compliance', 'billing', 'transportation'].includes(path as string)) {
+    if (['clients', 'staff', 'schedules', 'attendance', 'compliance', 'billing', 'transportation', 'staffCredentials'].includes(path as string)) {
+      if (path === 'staff') return 'staff';
       return path as DataModule;
     }
     return null;
@@ -29,7 +30,8 @@ export function Header({
 
   const handleAddNew = () => {
     if (activeModule) {
-      openModal('add', activeModule);
+      const moduleToAdd = activeModule === 'staff' ? 'staffCredentials' : activeModule;
+      openModal('add', moduleToAdd);
     }
   };
 
