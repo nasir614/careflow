@@ -38,11 +38,11 @@ export type StaffCredential = {
   training: string;
   hrDocument: string;
   startDate: string;
-  expirationDate: string;
-  renewalDate: string;
+  expirationDate: string | null;
+  renewalDate: string | null;
   isCritical: boolean;
   status: 'Active' | 'Expired' | 'Expiring Soon';
-  actionTaken: string;
+  actionTaken: string | null;
 };
 
 export type Attendance = {
@@ -124,3 +124,5 @@ export type Schedule = {
 export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials';
 
 export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential;
+
+    

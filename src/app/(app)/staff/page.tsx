@@ -12,6 +12,9 @@ import { CalendarRange, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 const scheduleColumns: ColumnDef<Schedule>[] = [
   {
@@ -25,9 +28,24 @@ const scheduleColumns: ColumnDef<Schedule>[] = [
     cell: (row) => row.serviceType,
   },
   {
+    accessorKey: 'serviceCode',
+    header: 'Code',
+    cell: (row) => row.serviceCode,
+  },
+  {
+    accessorKey: 'frequency',
+    header: 'Frequency',
+    cell: (row) => row.frequency,
+  },
+  {
     accessorKey: 'startDate',
     header: 'Period',
-    cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate}<br />to {row.endDate}</div>,
+    cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate} → {row.endDate}</div>,
+  },
+  {
+    accessorKey: 'hoursPerDay',
+    header: 'Hours',
+    cell: (row) => row.hoursPerDay,
   },
   {
     accessorKey: 'status',
@@ -41,6 +59,15 @@ const scheduleColumns: ColumnDef<Schedule>[] = [
   },
 ];
 
+const getCredentialStatus = (expiryDate: string | null) => {
+  if (!expiryDate) return { label: 'Active', className: 'bg-green-100 text-green-700' };
+  const diff = (new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+  if (diff <= 0) return { label: "Expired", className: "bg-red-100 text-red-700" };
+  if (diff <= 30) return { label: "Expiring Soon", className: "bg-yellow-100 text-yellow-700" };
+  return { label: 'Active', className: 'bg-green-100 text-green-700' };
+};
+
+
 const credentialColumns: ColumnDef<StaffCredential>[] = [
     {
       accessorKey: 'credential',
@@ -48,21 +75,21 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
       cell: (row) => (
         <div>
           <div className="font-medium">{row.credential}</div>
-          <div className="text-xs text-muted-foreground">{row.training}</div>
+          <div className="text-xs text-muted-foreground">{row.training || 'N/A'}</div>
         </div>
       ),
     },
     {
       accessorKey: 'expirationDate',
       header: 'Expires On',
-      cell: (row) => row.expirationDate,
+      cell: (row) => row.expirationDate || 'N/A',
     },
     {
       accessorKey: 'status',
       header: 'Status',
       cell: (row) => {
-        const statusClass = row.status === 'Active' ? 'badge-success' : row.status === 'Expired' ? 'badge-danger' : 'badge-warning';
-        return <span className={`badge ${statusClass}`}>{row.status}</span>;
+        const status = getCredentialStatus(row.expirationDate);
+        return <span className={cn('badge', status.className)}>{status.label}</span>;
       },
     },
     {
@@ -71,29 +98,43 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
         cell: (row) => row.isCritical ? <ShieldAlert className="w-5 h-5 text-destructive" /> : null,
     },
     {
+      accessorKey: 'actionTaken',
+      header: 'Notes',
+      cell: (row) => row.actionTaken || '-',
+    },
+    {
       accessorKey: 'actions',
       header: 'Actions',
       cell: () => null,
     },
-  ];
+];
 
 const ITEMS_PER_PAGE = 5;
 
 export default function StaffPage() {
   const { staff, schedules, staffCredentials, openModal } = useCareFlow();
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(staff[0] || null);
-  
-  const getStaffAvatar = (staffId: number) => {
-    const avatar = PlaceHolderImages.find(img => img.id === `staff-${staffId}`);
-    return avatar?.imageUrl || '';
-  }
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
+  const staffRoles = useMemo(() => [...new Set(staff.map(s => s.role))], [staff]);
+
+  const filteredStaff = useMemo(() => {
+    return staff.filter(s => {
+      const matchesSearch = searchTerm === '' || s.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === 'all' || s.role === roleFilter;
+      const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [staff, searchTerm, roleFilter, statusFilter]);
 
   const paginatedStaff = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return staff.slice(start, start + ITEMS_PER_PAGE);
-  }, [staff, currentPage]);
+    return filteredStaff.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredStaff, currentPage]);
 
   const staffSchedules = useMemo(() => {
     if (!selectedStaff) return [];
@@ -104,6 +145,22 @@ export default function StaffPage() {
     if (!selectedStaff) return [];
     return staffCredentials.filter(c => c.staffId === selectedStaff.id);
   }, [staffCredentials, selectedStaff]);
+  
+  const credentialSummary = useMemo(() => {
+    if (!selectedStaff) return { active: 0, expiring: 0, expired: 0 };
+    return selectedStaffCredentials.reduce((acc, cred) => {
+        const status = getCredentialStatus(cred.expirationDate).label;
+        if(status === 'Active') acc.active++;
+        if(status === 'Expiring Soon') acc.expiring++;
+        if(status === 'Expired') acc.expired++;
+        return acc;
+    }, { active: 0, expiring: 0, expired: 0 });
+  }, [selectedStaffCredentials, selectedStaff]);
+
+  const getStaffAvatar = (staffId: number) => {
+    const avatar = PlaceHolderImages.find(img => img.id === `staff-${staffId}`);
+    return avatar?.imageUrl || '';
+  }
 
   return (
     <div className="space-y-6">
@@ -117,10 +174,34 @@ export default function StaffPage() {
         <div className="lg:col-span-1 space-y-4">
             <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                    <CardTitle>All Staff</CardTitle>
+                    <CardTitle>Staff Directory</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-2">
+                    <div className='space-y-4'>
+                        <Input 
+                            placeholder="Search staff..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <div className="flex gap-2">
+                           <Select value={roleFilter} onValueChange={setRoleFilter}>
+                             <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="all">All Roles</SelectItem>
+                               {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                             </SelectContent>
+                           </Select>
+                           <Select value={statusFilter} onValueChange={setStatusFilter}>
+                             <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="all">All Statuses</SelectItem>
+                               <SelectItem value="Active">Active</SelectItem>
+                               <SelectItem value="Inactive">Inactive</SelectItem>
+                             </SelectContent>
+                           </Select>
+                        </div>
+                    </div>
+                    <div className="space-y-2 mt-4">
                         {paginatedStaff.map(s => (
                             <div 
                                 key={s.id} 
@@ -143,10 +224,10 @@ export default function StaffPage() {
                         ))}
                     </div>
 
-                   {staff.length > ITEMS_PER_PAGE && (
+                   {filteredStaff.length > ITEMS_PER_PAGE && (
                      <Pagination
                         currentPage={currentPage}
-                        totalItems={staff.length}
+                        totalItems={filteredStaff.length}
                         itemsPerPage={ITEMS_PER_PAGE}
                         onPageChange={setCurrentPage}
                     />
@@ -160,9 +241,14 @@ export default function StaffPage() {
             <>
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <CalendarRange className="w-5 h-5 text-primary" />
-                    Schedules for {selectedStaff.name}
+                  <CardTitle className="flex items-center justify-between text-lg">
+                    <div className="flex items-center gap-2">
+                        <CalendarRange className="w-5 h-5 text-primary" />
+                        Schedules for {selectedStaff.name}
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => openModal('add', 'schedules')}>
+                        + Add Schedule
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -178,9 +264,16 @@ export default function StaffPage() {
 
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <ShieldCheck className="w-5 h-5 text-primary" />
-                    Credentials & Training for {selectedStaff.name}
+                  <CardTitle className="flex items-center justify-between text-lg">
+                     <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-primary" />
+                        Credentials & Training for {selectedStaff.name}
+                     </div>
+                     <div className="flex items-center gap-3 text-sm">
+                        <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
+                        <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
+                        <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
+                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -204,3 +297,5 @@ export default function StaffPage() {
     </div>
   );
 }
+
+    
