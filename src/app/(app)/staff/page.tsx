@@ -171,36 +171,6 @@ export default function StaffPage() {
         </Button>
       </PageHeader>
       
-      {selectedStaff ? (
-        <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-                <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16 border-2 border-primary/20">
-                        <AvatarImage src={getStaffAvatar(selectedStaff.id)} alt={selectedStaff.name} />
-                        <AvatarFallback className="text-2xl">{selectedStaff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                        <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
-                        <p className="text-muted-foreground">{selectedStaff.role}</p>
-                    </div>
-                     <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
-                </div>
-            </CardHeader>
-            <CardContent className="border-t pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
-                    <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
-                    <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
-                    <InfoItem label="Emergency Contact" value={`${selectedStaff.emergencyContactName} (${selectedStaff.emergencyContactPhone})`} icon={Contact} />
-                </div>
-            </CardContent>
-        </Card>
-      ) : (
-         <div className="flex items-center justify-center h-48 bg-card rounded-2xl border border-dashed">
-            <p className="text-muted-foreground">Select a staff member to see their details.</p>
-        </div>
-      )}
-
       <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
               <CardTitle>Staff Directory</CardTitle>
@@ -259,6 +229,36 @@ export default function StaffPage() {
               </ScrollArea>
           </CardContent>
       </Card>
+
+      {selectedStaff ? (
+        <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+                <div className="flex items-start gap-4">
+                    <Avatar className="w-16 h-16 border-2 border-primary/20">
+                        <AvatarImage src={getStaffAvatar(selectedStaff.id)} alt={selectedStaff.name} />
+                        <AvatarFallback className="text-2xl">{selectedStaff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                        <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
+                        <p className="text-muted-foreground">{selectedStaff.role}</p>
+                    </div>
+                     <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="border-t pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
+                    <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
+                    <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
+                    <InfoItem label="Emergency Contact" value={`${selectedStaff.emergencyContactName} (${selectedStaff.emergencyContactPhone})`} icon={Contact} />
+                </div>
+            </CardContent>
+        </Card>
+      ) : (
+         <div className="flex items-center justify-center h-48 bg-card rounded-2xl border border-dashed">
+            <p className="text-muted-foreground">Select a staff member to see their details.</p>
+        </div>
+      )}
 
       {selectedStaff && (
         <>
