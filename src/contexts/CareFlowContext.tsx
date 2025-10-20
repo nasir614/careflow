@@ -7,6 +7,15 @@ import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Sc
 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
+// Define rates for services
+const SERVICE_RATES: { [key: string]: number } = {
+    'Adult Day Care': 25, // per hour
+    'Personal Care': 30, // per hour
+    'Day Support': 28, // per hour
+    'Respite Care': 35, // per hour
+    'Transportation': 50, // per trip
+};
+
 interface CareFlowContextType {
   // State
   clients: Client[];
@@ -37,6 +46,9 @@ interface CareFlowContextType {
   // CRUD
   handleCRUD: (action: 'add' | 'edit' | 'delete', module: DataModule, data: any, item?: AnyData | null) => void;
   isLoading: boolean;
+
+  // New billing automation
+  generateInvoicesFromLogs: () => void;
 }
 
 const CareFlowContext = createContext<CareFlowContextType | undefined>(undefined);
@@ -103,6 +115,81 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     }, 200);
   };
 
+  const generateInvoicesFromLogs = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      let newInvoices: Billing[] = [];
+      let generatedCount = 0;
+
+      // Generate from attendance logs
+      attendance.forEach(att => {
+          const alreadyBilled = billing.some(b => b.sourceLogId === `att-${att.id}`);
+          if (att.status === 'present' && att.totalHours > 0 && !alreadyBilled) {
+              const client = clients.find(c => c.id === att.clientId);
+              const rate = SERVICE_RATES[att.serviceType] || 0;
+              const amount = att.totalHours * rate;
+
+              if (client && amount > 0) {
+                  newInvoices.push({
+                      id: Date.now() + generatedCount,
+                      invoiceNo: `INV-${Date.now().toString().slice(-6) + generatedCount}`,
+                      clientId: client.id,
+                      clientName: `${client.firstName} ${client.lastName}`,
+                      scheduleId: schedules.find(s => s.clientId === client.id && s.serviceType === att.serviceType)?.id || 0,
+                      serviceDate: att.date,
+                      serviceType: att.serviceType,
+                      serviceCode: att.billingCode,
+                      units: att.totalHours,
+                      rate: rate,
+                      amount: amount,
+                      status: 'Pending',
+                      createdAt: new Date().toISOString(),
+                      sourceLogId: `att-${att.id}`,
+                  });
+                  generatedCount++;
+              }
+          }
+      });
+
+      // Generate from transportation logs
+      transportation.forEach(trans => {
+        const alreadyBilled = billing.some(b => b.sourceLogId === `trans-${trans.id}`);
+        if (trans.status === 'Completed' && !alreadyBilled) {
+            const client = clients.find(c => `${c.firstName} ${c.lastName}` === trans.client);
+            const rate = SERVICE_RATES['Transportation'] || 0;
+            if(client && rate > 0) {
+              newInvoices.push({
+                id: Date.now() + generatedCount,
+                invoiceNo: `INV-${Date.now().toString().slice(-6) + generatedCount}`,
+                clientId: client.id,
+                clientName: trans.client,
+                scheduleId: 0, // No direct schedule link for transportation
+                serviceDate: trans.date,
+                serviceType: 'Transportation',
+                serviceCode: 'A0120', // Example code for non-emergency transport
+                units: 1, // Per trip
+                rate: rate,
+                amount: rate,
+                status: 'Pending',
+                createdAt: new Date().toISOString(),
+                sourceLogId: `trans-${trans.id}`,
+              });
+              generatedCount++;
+            }
+        }
+      });
+
+      if (newInvoices.length > 0) {
+        setBilling(prev => [...prev, ...newInvoices]);
+        toast({ title: "Invoices Generated", description: `${generatedCount} new draft invoice(s) have been created.` });
+      } else {
+        toast({ title: "No New Invoices", description: "All completed services have already been invoiced." });
+      }
+
+      setIsLoading(false);
+    }, 1000);
+  };
+
   const handleCRUD = (action: 'add' | 'edit' | 'delete', module: DataModule, data: any, item: AnyData | null = null) => {
     setIsLoading(true);
     setTimeout(() => { // Simulate API delay
@@ -156,7 +243,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             };
             setBilling(prev => [...prev, newItem]); 
             break;
-          case 'transportation': setTransportation(prev => [...prev, newItem]); break;
+          case 'transportation': 
+            const transClient = clients.find(c => `${c.firstName} ${c.lastName}` === data.client);
+            newItem = {
+              ...newItem,
+              clientId: transClient ? transClient.id : 0,
+            };
+            setTransportation(prev => [...prev, newItem]); 
+            break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
@@ -181,12 +275,18 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'billing': 
              updatedItem = {
               ...updatedItem,
-              amount: (data.units || item.units) * (data.rate || item.rate),
+              amount: (data.units || (item as Billing).units) * (data.rate || (item as Billing).rate),
               clientName: findClientName(updatedItem.clientId),
             };
             setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
             break;
-          case 'transportation': setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
+          case 'transportation': 
+            const transClient = clients.find(c => `${c.firstName} ${c.lastName}` === data.client);
+            updatedItem = {
+              ...updatedItem,
+              clientId: transClient ? transClient.id : 0,
+            };
+            setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
         }
         toast({ title: "Success", description: `${capitalizedModule} updated successfully!` });
       } else if (action === 'delete' && item) {
@@ -229,6 +329,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     closeModal,
     handleCRUD,
     isLoading,
+    generateInvoicesFromLogs,
   };
 
   return (

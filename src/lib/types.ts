@@ -95,10 +95,12 @@ export type Billing = {
   amount: number;
   status: 'Pending' | 'Submitted' | 'Paid' | 'Denied';
   createdAt: string;
+  sourceLogId?: string; // e.g., 'att-123' or 'trans-456'
 };
 
 export type Transportation = {
   id: number;
+  clientId: number;
   client: string;
   driver: string;
   pickup: string;

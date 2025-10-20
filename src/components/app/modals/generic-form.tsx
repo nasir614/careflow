@@ -24,14 +24,14 @@ type FieldConfig = {
     label: string;
     type: 'text' | 'tel' | 'email' | 'date' | 'time' | 'number' | 'select' | 'textarea' | 'checkbox';
     required?: boolean;
-    options?: { value: string; label: string }[] | string[];
+    options?: { value: string | number; label: string }[] | string[];
     placeholder?: string;
     className?: string;
 }
 
 const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): FieldConfig[] => {
-    const clientOptions = clients.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }));
-    const staffOptions = staff.map(s => ({ value: s.id.toString(), label: s.name }));
+    const clientOptions = clients.map(c => ({ value: c.id, label: `${c.firstName} ${c.lastName}` }));
+    const staffOptions = staff.map(s => ({ value: s.id, label: s.name }));
     const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
 
@@ -97,7 +97,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
             ];
         case 'transportation':
             return [
-                { name: 'client', label: 'Client', type: 'text', required: true },
+                { name: 'client', label: 'Client', type: 'select', options: clientOptions.map(c => ({value: c.label, label: c.label})), required: true },
                 { name: 'driver', label: 'Driver', type: 'text', required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
                 { name: 'pickup', label: 'Pickup Time', type: 'time', required: true },
@@ -117,7 +117,15 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
 
   useEffect(() => {
     if (item) {
-      setFormData(item);
+      const initialData: Partial<AnyData> = { ...item };
+       // Ensure IDs are strings for select components
+      if ( 'clientId' in initialData && initialData.clientId) {
+        initialData.clientId = String(initialData.clientId);
+      }
+      if ('staffId' in initialData && initialData.staffId) {
+          initialData.staffId = String(initialData.staffId);
+      }
+      setFormData(initialData);
     } else {
       const defaults: Partial<AnyData> = {};
       if (module === 'staffCredentials') {
@@ -143,7 +151,14 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const dataToSubmit = { ...formData };
+    if ('clientId' in dataToSubmit && typeof dataToSubmit.clientId === 'string') {
+        dataToSubmit.clientId = parseInt(dataToSubmit.clientId, 10);
+    }
+    if ('staffId' in dataToSubmit && typeof dataToSubmit.staffId === 'string') {
+        dataToSubmit.staffId = parseInt(dataToSubmit.staffId, 10);
+    }
+    onSubmit(dataToSubmit);
   };
   
   const renderField = (field: FieldConfig) => {
@@ -162,10 +177,10 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
               <SelectValue placeholder={`Select ${label}`} />
             </SelectTrigger>
             <SelectContent>
-              {[...new Set(options)]?.map(opt => 
+              {options?.map(opt => 
                 typeof opt === 'string' 
                 ? <SelectItem key={opt} value={opt}>{opt}</SelectItem> 
-                : <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                : <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -210,7 +225,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       </div>
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-        <Button type="submit" disabled={isLoading} className="rounded-full">
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           {item ? 'Save Changes' : `Create ${module === 'staff' ? 'Staff Member' : module === 'staffCredentials' ? 'Credential' : module.slice(0, -1)}`}
         </Button>

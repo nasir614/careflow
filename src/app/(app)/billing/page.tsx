@@ -8,7 +8,7 @@ import { Pagination } from '@/components/app/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, X } from 'lucide-react';
+import { Download, X, FilePlus2 } from 'lucide-react';
 import type { Billing } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -64,7 +64,7 @@ const columns: ColumnDef<Billing>[] = [
 const ITEMS_PER_PAGE = 8;
 
 export default function BillingPage() {
-  const { billing, clients, openModal } = useCareFlow();
+  const { billing, clients, openModal, generateInvoicesFromLogs, isLoading } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [clientFilter, setClientFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -77,7 +77,7 @@ export default function BillingPage() {
       const matchesClient = clientFilter === 'all' || item.clientName === clientFilter;
       const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
       return matchesClient && matchesStatus;
-    });
+    }).sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime());
   }, [billing, clientFilter, statusFilter]);
 
   const paginatedData = useMemo(() => {
@@ -112,6 +112,10 @@ export default function BillingPage() {
          <Button variant="outline" size="sm" onClick={exportToCSV}>
           <Download className="w-4 h-4 mr-2" />
           Export CSV
+        </Button>
+        <Button variant="default" size="sm" onClick={generateInvoicesFromLogs} disabled={isLoading}>
+          <FilePlus2 className="w-4 h-4 mr-2" />
+          {isLoading ? 'Generating...' : 'Generate Invoices'}
         </Button>
       </PageHeader>
       
