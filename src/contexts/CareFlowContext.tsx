@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { 
   initialClients, 
@@ -122,8 +122,8 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
   const [staffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
-  const [servicePlans, setServicePlans] = useState<ServicePlan[]>(initialServicePlans);
-  const [carePlans, setCarePlans] = useState<CarePlan[]>(initialCarePlans);
+  const [_servicePlans, setServicePlans] = useState<Omit<ServicePlan, 'status'>[]>(initialServicePlans);
+  const [_carePlans, setCarePlans] = useState<Omit<CarePlan, 'status'>[]>(initialCarePlans);
   const [authorizations, setAuthorizations] = useState<Authorization[]>(initialAuthorizations);
   
   // Modal states
@@ -133,6 +133,34 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [selectedItem, setSelectedItem] = useState<AnyData | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
+
+  const getDerivedStatus = (startDate: string, endDate: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (today < start) return 'Pending';
+    if (today > end) return 'Expired';
+    return 'Active';
+  };
+
+  const servicePlans = useMemo<ServicePlan[]>(() => {
+    return _servicePlans.map(plan => ({
+      ...plan,
+      status: getDerivedStatus(plan.startDate, plan.endDate)
+    }));
+  }, [_servicePlans]);
+
+  const carePlans = useMemo<CarePlan[]>(() => {
+    return _carePlans.map(plan => {
+      const auth = authorizations.find(a => a.clientId === plan.clientId);
+      if (auth) {
+        return { ...plan, status: auth.status };
+      }
+      return { ...plan, status: 'Inactive' }; // Default status if no auth
+    });
+  }, [_carePlans, authorizations]);
+
 
   const openModal = (type: ModalType, module: DataModule, item: AnyData | null = null) => {
     setModalType(type);
@@ -253,6 +281,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
+        const { status, ...restOfData } = data;
+        newItem = { id: Date.now(), createdAt: new Date().toISOString(), ...restOfData };
+        
         switch(module) {
           case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
           case 'staff': setStaff(prev => [...prev, newItem]); break;
@@ -275,6 +306,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                   serviceType: servicePlan ? servicePlan.type : 'Unknown',
                   billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
                   usedHours: 0,
+                  status: getDerivedStatus(newItem.startDate, newItem.endDate),
               };
               setAuthorizations(prev => [...prev, newItem]);
               break;
@@ -310,7 +342,8 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
-        let updatedItem = { ...item, ...data };
+        const { status, ...restOfData } = data;
+        let updatedItem: any = { ...item, ...restOfData };
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
@@ -318,11 +351,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
           case 'servicePlans':
               updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId) };
-              setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p));
+              setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem : p));
               break;
           case 'carePlans':
               updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId), assignedStaff: findStaffName(updatedItem.assignedStaffId) };
-              setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p));
+              setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem : p));
               break;
           case 'authorizations':
               const servicePlan = servicePlans.find(p => String(p.id) === String(updatedItem.servicePlanId));
@@ -332,6 +365,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                   servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
                   serviceType: servicePlan ? servicePlan.type : 'Unknown',
                   billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
+                  status: getDerivedStatus(updatedItem.startDate, updatedItem.endDate),
               };
               setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a));
               break;
@@ -403,8 +437,8 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setSchedules,
     setAttendance,
     setStaffCredentials,
-    setServicePlans,
-    setCarePlans,
+    setServicePlans: setServicePlans as any, // internal state is different
+    setCarePlans: setCarePlans as any, // internal state is different
     setAuthorizations,
     modalOpen,
     modalType,

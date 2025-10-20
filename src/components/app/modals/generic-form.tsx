@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Loader2, Save } from 'lucide-react';
-import type { DataModule, AnyData, AttendanceStatus } from '@/lib/types';
+import type { DataModule, AnyData, AttendanceStatus, PlanStatus } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 
 interface GenericFormProps {
@@ -27,6 +27,7 @@ type FieldConfig = {
     options?: { value: string | number; label: string }[] | string[];
     placeholder?: string;
     className?: string;
+    disabled?: boolean;
 }
 
 const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], servicePlans: any[]): FieldConfig[] => {
@@ -45,6 +46,8 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
         { value: 'absent_personal', label: 'Absent (Personal)' },
     ];
 
+    const planStatusOptions: PlanStatus[] = ['Active', 'Pending', 'Expired', 'Inactive'];
+
     switch (module) {
         case 'servicePlans':
             return [
@@ -54,7 +57,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'billingCode', label: 'Billing Code', type: 'text', required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive', 'Pending', 'Expired'], required: true },
+                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, disabled: true, placeholder: 'Status is auto-calculated' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'carePlans':
@@ -64,7 +67,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'assignedStaffId', label: 'Assigned Staff', type: 'select', options: staffOptions, required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'On-Hold', 'Expired'], required: true },
+                { name: 'status', label: 'Status', type: 'select', options: [], required: true, disabled: true, placeholder: 'Set via Authorization' },
                 { name: 'goals', label: 'Care Goals', type: 'textarea', className: 'md:col-span-2' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
@@ -75,7 +78,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'authorizedHours', label: 'Authorized Hours', type: 'number', required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Pending', 'Renewed'], required: true },
+                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, disabled: true, placeholder: 'Status is auto-calculated' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'staffCredentials':
@@ -219,7 +222,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   };
   
   const renderField = (field: FieldConfig) => {
-    const { name, label, type, required, options, placeholder, className } = field;
+    const { name, label, type, required, options, placeholder, className, disabled } = field;
     const commonProps = {
         key: name,
         className: className || ''
@@ -229,9 +232,9 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       return (
         <div {...commonProps}>
           <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
-          <Select value={(formData[name as keyof AnyData] as string) || ""} onValueChange={(value) => handleSelectChange(name, value)} required={required}>
+          <Select value={(formData[name as keyof AnyData] as string) || ""} onValueChange={(value) => handleSelectChange(name, value)} required={required} disabled={disabled}>
             <SelectTrigger>
-              <SelectValue placeholder={`Select ${label}`} />
+              <SelectValue placeholder={placeholder || `Select ${label}`} />
             </SelectTrigger>
             <SelectContent>
               {options?.map(opt => 
@@ -273,18 +276,20 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     );
   };
   
+  const getSingularModuleName = (module: string) => {
+    if (module === 'staffCredentials') return 'Staff Credential';
+    if (module === 'staff') return 'Staff Member';
+    if (module === 'servicePlans') return 'Service Plan';
+    if (module === 'carePlans') return 'Care Plan';
+    if (module === 'authorizations') return 'Authorization';
+    if (module.endsWith('s')) return module.slice(0, -1);
+    return module;
+  }
+  
   const getModalTitle = () => {
     const titleAction = item ? 'Edit' : 'Create';
-    switch (module) {
-      case 'staff': return `${titleAction} Staff Member`;
-      case 'staffCredentials': return `${titleAction} Credential`;
-      case 'servicePlans': return `${titleAction} Service Plan`;
-      case 'carePlans': return `${titleAction} Care Plan`;
-      case 'authorizations': return `${titleAction} Authorization`;
-      default:
-        const singular = module.endsWith('s') ? module.slice(0, -1) : module;
-        return `${titleAction} ${singular.charAt(0).toUpperCase() + singular.slice(1)}`;
-    }
+    const singular = getSingularModuleName(module);
+    return `${titleAction} ${singular.charAt(0).toUpperCase() + singular.slice(1)}`;
   }
 
 

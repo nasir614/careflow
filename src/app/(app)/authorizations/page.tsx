@@ -5,12 +5,12 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { Authorization } from '@/lib/types';
+import type { Authorization, PlanStatus } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
-const getStatusBadgeClass = (status: Authorization['status']) => {
+const getStatusBadgeClass = (status: PlanStatus) => {
   switch (status) {
     case 'Active':
       return 'badge-success';

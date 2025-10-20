@@ -5,19 +5,20 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
-import type { CarePlan } from '@/lib/types';
+import type { CarePlan, PlanStatus } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-const getStatusBadgeClass = (status: CarePlan['status']) => {
+const getStatusBadgeClass = (status: PlanStatus) => {
   switch (status) {
     case 'Active':
       return 'badge-success';
-    case 'On-Hold':
+    case 'Pending':
       return 'badge-warning';
-    case 'Completed':
+    case 'Expired':
+    case 'Inactive':
     default:
-      return 'badge-info';
+      return 'badge-danger';
   }
 };
 

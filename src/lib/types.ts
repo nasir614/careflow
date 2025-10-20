@@ -131,6 +131,8 @@ export type Schedule = {
   createdAt: string;
 };
 
+export type PlanStatus = 'Active' | 'Pending' | 'Expired' | 'Inactive';
+
 export type ServicePlan = {
   id: number;
   clientId: number;
@@ -138,7 +140,7 @@ export type ServicePlan = {
   planName: string;
   type: 'Medical' | 'Personal Care' | 'Social';
   billingCode: string;
-  status: 'Active' | 'Inactive' | 'Pending' | 'Expired';
+  status: PlanStatus;
   startDate: string;
   endDate: string;
   notes?: string;
@@ -151,7 +153,7 @@ export type CarePlan = {
   planName: string;
   assignedStaffId: number;
   assignedStaff: string;
-  status: 'Active' | 'Completed' | 'On-Hold' | 'Expired';
+  status: PlanStatus;
   startDate: string;
   endDate: string;
   goals: string;
@@ -170,7 +172,7 @@ export type Authorization = {
   usedHours: number;
   startDate: string;
   endDate: string;
-  status: 'Active' | 'Expired' | 'Pending' | 'Renewed';
+  status: PlanStatus;
   notes?: string;
 };
 
