@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
@@ -56,8 +56,8 @@ export function DataTable<T extends { id: any }>({
         <TableBody>
           {data.length > 0 ? (
             data.map((row) => (
-              <>
-                <TableRow key={row.id} className={cn(expandedRows.has(row.id) && 'border-b-0')}>
+              <Fragment key={row.id}>
+                <TableRow className={cn(expandedRows.has(row.id) && 'border-b-0')}>
                   {columns.map((column) => (
                     <TableCell key={String(column.accessorKey)}>
                       {column.accessorKey === 'actions' ? (
@@ -100,7 +100,7 @@ export function DataTable<T extends { id: any }>({
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             ))
           ) : (
             <TableRow>
