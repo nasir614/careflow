@@ -51,56 +51,6 @@ export type StaffCredential = {
   actionTaken: string | null;
 };
 
-export type AttendanceStatus = 'present' | 'absent' | 'excused' | 'absent_hospital' | 'absent_travel' | 'absent_personal';
-
-export type Attendance = {
-  id: number;
-  clientId: number;
-  clientName: string;
-  staffId: number;
-  staffName: string;
-  serviceType: string;
-  date: string;
-  checkInAM: string;
-  checkOutAM: string;
-  checkInPM: string;
-  checkOutPM: string;
-  totalHours: number;
-  location: string;
-  billingCode: string;
-  status: AttendanceStatus;
-  notes: string;
-  createdAt: string;
-};
-
-export type DailyLogEntry = {
-    date: string;
-    status: AttendanceStatus;
-    checkInAM: string;
-    checkOutAM: string;
-    checkInPM: string;
-    checkOutPM: string;
-    notes: string;
-};
-
-export type BulkAttendanceData = {
-  clientIds: number[];
-  staffId: number;
-  serviceType: string;
-  location: string;
-  billingCode: string;
-  startDate: string; // Keep for old logic fallback, but not used in new form
-  endDate: string; // Keep for old logic fallback, but not used in new form
-  dailyLogs?: DailyLogEntry[]; // New field for the timesheet
-  // The following are now part of dailyLogs, but kept for old logic
-  checkInAM?: string;
-  checkOutAM?: string;
-  checkInPM?: string;
-  checkOutPM?: string;
-  status?: AttendanceStatus;
-  notes?: string;
-};
-
 export type Compliance = {
   id: number;
   client: string;
@@ -204,6 +154,6 @@ export type Authorization = {
   notes?: string;
 };
 
-export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations';
+export type DataModule = 'clients' | 'staff' | 'schedules' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations';
 
-export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization;
+export type AnyData = Client | Staff | Schedule | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization;

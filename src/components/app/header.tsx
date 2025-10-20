@@ -21,7 +21,7 @@ export function Header({
 
   const getModuleFromPath = (): DataModule | null => {
     const path = pathname.split('/').pop()?.replace('-', '');
-    if (['clients', 'staff', 'schedules', 'attendance', 'compliance', 'billing', 'transportation', 'staffCredentials', 'serviceplans', 'careplans', 'authorizations'].includes(path as string)) {
+    if (['clients', 'staff', 'schedules', 'compliance', 'billing', 'transportation', 'staffCredentials', 'serviceplans', 'careplans', 'authorizations'].includes(path as string)) {
       if (path === 'staff') return 'staff';
       if (path === 'serviceplans') return 'servicePlans';
       if (path === 'careplans') return 'carePlans';

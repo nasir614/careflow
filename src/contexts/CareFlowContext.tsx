@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   initialClients, 
   initialStaff, 
-  initialAttendance, 
   initialCompliance, 
   initialBilling, 
   initialTransportation, 
@@ -18,7 +17,6 @@ import {
 import type { 
   Client, 
   Staff, 
-  Attendance, 
   Compliance, 
   Billing, 
   Transportation, 
@@ -29,11 +27,10 @@ import type {
   ServicePlan,
   CarePlan,
   Authorization,
-  BulkAttendanceData,
 } from '@/lib/types';
 import { eachDayOfInterval, format, isMatch } from 'date-fns';
 
-type ModalType = 'add' | 'edit' | 'view' | 'delete' | 'bulkAddAttendance' | '';
+type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
 // Define rates for services
 const SERVICE_RATES: { [key: string]: number } = {
@@ -48,7 +45,6 @@ interface CareFlowContextType {
   // State
   clients: Client[];
   staff: Staff[];
-  attendance: Attendance[];
   compliance: Compliance[];
   billing: Billing[];
   transportation: Transportation[];
@@ -62,7 +58,6 @@ interface CareFlowContextType {
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<Schedule[]>>;
-  setAttendance: React.Dispatch<React.SetStateAction<Attendance[]>>;
   setStaffCredentials: React.Dispatch<React.SetStateAction<StaffCredential[]>>;
   setServicePlans: React.Dispatch<React.SetStateAction<ServicePlan[]>>;
   setCarePlans: React.Dispatch<React.SetStateAction<CarePlan[]>>;
@@ -84,36 +79,10 @@ interface CareFlowContextType {
 
   // New billing automation
   generateInvoicesFromLogs: () => void;
-
-  // Bulk attendance
-  handleBulkAddAttendance: (data: BulkAttendanceData) => void;
 }
 
 const CareFlowContext = createContext<CareFlowContextType | undefined>(undefined);
 
-const calculateTotalHours = (data: Partial<Attendance>): number => {
-    let totalMinutes = 0;
-
-    const timeToMinutes = (time: string) => {
-        if (!time) return 0;
-        const [hours, minutes] = time.split(':').map(Number);
-        return hours * 60 + minutes;
-    };
-
-    const amIn = timeToMinutes(data.checkInAM || '');
-    const amOut = timeToMinutes(data.checkOutAM || '');
-    const pmIn = timeToMinutes(data.checkInPM || '');
-    const pmOut = timeToMinutes(data.checkOutPM || '');
-
-    if (amOut > amIn) {
-        totalMinutes += amOut - amIn;
-    }
-    if (pmOut > pmIn) {
-        totalMinutes += pmOut - pmIn;
-    }
-
-    return totalMinutes / 60;
-};
 
 export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
@@ -121,7 +90,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   // Main data states
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [staff, setStaff] = useState<Staff[]>(initialStaff);
-  const [attendance, setAttendance] = useState<Attendance[]>(initialAttendance);
   const [compliance, setCompliance] = useState<Compliance[]>(initialCompliance);
   const [billing, setBilling] = useState<Billing[]>(initialBilling);
   const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
@@ -184,107 +152,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     }, 200);
   };
 
-  const handleBulkAddAttendance = (data: BulkAttendanceData) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const { clientIds, staffId, serviceType, dailyLogs, ...rest } = data;
-      const staffMember = staff.find(s => s.id === staffId);
-      if (!staffMember) {
-        toast({ variant: 'destructive', title: "Error", description: "Invalid staff member selected." });
-        setIsLoading(false);
-        return;
-      }
-  
-      let createdCount = 0;
-      let updatedCount = 0;
-      const clientId = clientIds[0];
-      const client = clients.find(c => c.id === clientId);
-  
-      if (client && dailyLogs) {
-        let tempAttendance = [...attendance];
-  
-        dailyLogs.forEach(log => {
-          const existingLogIndex = tempAttendance.findIndex(a => a.clientId === clientId && a.date === log.date);
-  
-          const logData = {
-            clientId,
-            clientName: `${client.firstName} ${client.lastName}`,
-            staffId,
-            staffName: staffMember.name,
-            date: log.date,
-            totalHours: calculateTotalHours(log),
-            createdAt: new Date().toISOString(),
-            serviceType,
-            ...rest,
-            ...log,
-          };
-  
-          if (existingLogIndex !== -1) {
-            // Update existing log
-            const existingLog = tempAttendance[existingLogIndex];
-            tempAttendance[existingLogIndex] = { ...existingLog, ...logData };
-            updatedCount++;
-          } else {
-            // Add new log
-            const newLog: Attendance = {
-              id: Date.now() + createdCount,
-              ...logData,
-            };
-            tempAttendance.push(newLog);
-            createdCount++;
-          }
-        });
-  
-        setAttendance(tempAttendance);
-  
-        toast({
-          title: "Bulk Process Complete",
-          description: `${createdCount} new logs created. ${updatedCount} existing logs updated.`
-        });
-      } else {
-        toast({ variant: 'destructive', title: "Error", description: "Client not found or no daily logs provided." });
-      }
-  
-      setIsLoading(false);
-      closeModal();
-    }, 1000);
-  };
-
   const generateInvoicesFromLogs = () => {
     setIsLoading(true);
     setTimeout(() => {
       let newInvoices: Billing[] = [];
       let generatedCount = 0;
-
-      // Generate from attendance logs only for 'present' status
-      attendance.forEach(att => {
-          const alreadyBilled = billing.some(b => b.sourceLogId === `att-${att.id}`);
-          if (att.status === 'present' && att.totalHours > 0 && !alreadyBilled) {
-              const client = clients.find(c => c.id === att.clientId);
-              const rate = SERVICE_RATES[att.serviceType] || 0;
-              const amount = att.totalHours * rate;
-
-              if (client && amount > 0) {
-                  newInvoices.push({
-                      id: Date.now() + generatedCount,
-                      invoiceNo: `INV-${Date.now().toString().slice(-6) + generatedCount}`,
-                      clientId: client.id,
-                      clientName: `${client.firstName} ${client.lastName}`,
-                      scheduleId: schedules.find(s => s.clientId === client.id && s.serviceType === att.serviceType)?.id || 0,
-                      serviceDate: att.date,
-                      serviceType: att.serviceType,
-                      serviceCode: att.billingCode,
-                      units: att.totalHours,
-                      rate: rate,
-                      amount: amount,
-                      status: 'Pending',
-                      createdAt: new Date().toISOString(),
-                      sourceLogId: `att-${att.id}`,
-                  });
-                  generatedCount++;
-              }
-          }
-      });
 
       // Generate from transportation logs
       transportation.forEach(trans => {
@@ -381,17 +253,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
               };
               setAuthorizations(prev => [...prev, newItem]);
               break;
-          case 'attendance': 
-            const client = clients.find(c => String(c.id) === String(newItem.clientId));
-            const staffMember = staff.find(s => String(s.id) === String(newItem.staffId));
-            newItem = {
-                ...newItem,
-                clientName: client ? `${client.firstName} ${client.lastName}` : 'Unknown',
-                staffName: staffMember ? staffMember.name : 'Unknown',
-                totalHours: calculateTotalHours(newItem)
-            };
-            setAttendance(prev => [...prev, newItem]);
-            break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
             newItem = {
@@ -440,17 +301,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
               };
               setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a));
               break;
-          case 'attendance': 
-            const client = clients.find(c => String(c.id) === String(updatedItem.clientId));
-            const staffMember = staff.find(s => String(s.id) === String(updatedItem.staffId));
-            updatedItem = {
-                ...updatedItem,
-                clientName: client ? `${client.firstName} ${client.lastName}` : 'Unknown',
-                staffName: staffMember ? staffMember.name : 'Unknown',
-                totalHours: calculateTotalHours(updatedItem)
-            };
-            setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a)); 
-            break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': 
              updatedItem = {
@@ -478,7 +328,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'servicePlans': setServicePlans(prev => prev.filter(p => p.id !== item.id)); break;
           case 'carePlans': setCarePlans(prev => prev.filter(p => p.id !== item.id)); break;
           case 'authorizations': setAuthorizations(prev => prev.filter(a => a.id !== item.id)); break;
-          case 'attendance': setAttendance(prev => prev.filter(a => a.id !== item.id)); break;
           case 'compliance': setCompliance(prev => prev.filter(c => c.id !== item.id)); break;
           case 'billing': setBilling(prev => prev.filter(b => b.id !== item.id)); break;
           case 'transportation': setTransportation(prev => prev.filter(t => t.id !== item.id)); break;
@@ -494,7 +343,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     clients,
     staff,
-    attendance,
     compliance,
     billing,
     transportation,
@@ -506,7 +354,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setClients,
     setStaff,
     setSchedules,
-    setAttendance,
     setStaffCredentials,
     setServicePlans: setServicePlans as any, // internal state is different
     setCarePlans: setCarePlans as any, // internal state is different
@@ -520,7 +367,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     handleCRUD,
     isLoading,
     generateInvoicesFromLogs,
-    handleBulkAddAttendance,
   };
 
   return (

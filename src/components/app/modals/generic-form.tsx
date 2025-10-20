@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Loader2, Save } from 'lucide-react';
-import type { DataModule, AnyData, AttendanceStatus, PlanStatus } from '@/lib/types';
+import type { DataModule, AnyData, PlanStatus } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 
 interface GenericFormProps {
@@ -36,15 +36,6 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
     const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
     const servicePlanOptions = servicePlans.map(p => ({ value: p.id, label: p.planName }));
-
-    const attendanceStatusOptions: {value: AttendanceStatus, label: string}[] = [
-        { value: 'present', label: 'Present' },
-        { value: 'excused', label: 'Excused' },
-        { value: 'absent', label: 'Absent (General)' },
-        { value: 'absent_hospital', label: 'Absent (Hospital)' },
-        { value: 'absent_travel', label: 'Absent (Travel)' },
-        { value: 'absent_personal', label: 'Absent (Personal)' },
-    ];
 
     const planStatusOptions: PlanStatus[] = ['Active', 'Pending', 'Expired', 'Inactive'];
 
@@ -107,21 +98,6 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'emergencyContactName', label: 'Emergency Contact Name', type: 'text'},
                 { name: 'emergencyContactPhone', label: 'Emergency Contact Phone', type: 'tel'}
             ];
-        case 'attendance':
-             return [
-                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
-                { name: 'staffId', label: 'Staff', type: 'select', options: staffOptions, required: true },
-                { name: 'serviceType', label: 'Service Type', type: 'select', options: serviceTypeOptions, required: true },
-                { name: 'date', label: 'Date', type: 'date', required: true },
-                { name: 'location', label: 'Location', type: 'text', required: true },
-                { name: 'billingCode', label: 'Billing Code', type: 'text' },
-                { name: 'checkInAM', label: 'Check In (AM)', type: 'time' },
-                { name: 'checkOutAM', label: 'Check Out (AM)', type: 'time' },
-                { name: 'checkInPM', label: 'Check In (PM)', type: 'time' },
-                { name: 'checkOutPM', label: 'Check Out (PM)', type: 'time' },
-                { name: 'status', label: 'Status', type: 'select', options: attendanceStatusOptions, required: true },
-                { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' }
-            ];
         case 'compliance':
             return [
                 { name: 'client', label: 'Client', type: 'text', required: true },
@@ -181,9 +157,6 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       const defaults: Partial<AnyData> = {};
       if (module === 'staffCredentials') {
           defaults.isCritical = false;
-      }
-      if (module === 'attendance') {
-        defaults.status = 'present';
       }
       setFormData(defaults);
     }

@@ -38,7 +38,6 @@ const navGroups = [
     items: [
       { name: 'Clients', href: '/clients', icon: Users },
       { name: 'Schedules', href: '/schedules', icon: Calendar },
-      { name: 'Attendance', href: '/attendance', icon: UserCheck },
       { name: 'Transportation', href: '/transportation', icon: Bus },
     ],
   },

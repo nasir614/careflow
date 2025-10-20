@@ -11,10 +11,9 @@ import ScheduleForm from './schedule-form';
 import ViewScheduleModal from './view-schedule-modal';
 import GenericForm from './generic-form';
 import GenericViewModal from './generic-view-modal';
-import BulkAttendanceForm from './bulk-attendance-form';
 
 export function ModalManager() {
-  const { modalOpen, closeModal, modalType, activeModule, selectedItem, handleCRUD, handleBulkAddAttendance, isLoading } = useCareFlow();
+  const { modalOpen, closeModal, modalType, activeModule, selectedItem, handleCRUD, isLoading } = useCareFlow();
 
   if (!modalOpen || !activeModule) {
     return null;
@@ -39,7 +38,6 @@ export function ModalManager() {
         case 'edit': return `Edit ${capitalizedModule}`;
         case 'view': return `View ${capitalizedModule} Details`;
         case 'delete': return `Delete ${capitalizedModule}`;
-        case 'bulkAddAttendance': return 'Bulk Add Attendance';
         default: return '';
     }
   }
@@ -68,14 +66,12 @@ export function ModalManager() {
           return <ScheduleForm item={selectedItem as Schedule | null} onSubmit={(data) => handleCRUD(modalType, activeModule, data, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
         }
         return <GenericForm module={activeModule} item={selectedItem} onSubmit={(data) => handleCRUD(modalType, activeModule, data, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
-      case 'bulkAddAttendance':
-        return <BulkAttendanceForm onSubmit={handleBulkAddAttendance} isLoading={isLoading} onCancel={closeModal} />;
       default:
         return null;
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit', 'bulkAddAttendance'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations', 'attendance'].includes(activeModule));
+  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations'].includes(activeModule));
 
   return (
     <Dialog open={modalOpen} onOpenChange={closeModal}>
