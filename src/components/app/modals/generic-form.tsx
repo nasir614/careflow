@@ -35,7 +35,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
     const staffOptions = staff.map(s => ({ value: s.id, label: s.name }));
     const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
-    const servicePlanOptions = servicePlans.map(p => ({ value: p.id, label: p.planName }));
+    const servicePlanOptions = servicePlans.map(p => ({ value: p.id, label: `${p.planName} (${p.clientName})` }));
 
     const planStatusOptions: PlanStatus[] = ['Active', 'Pending', 'Expired', 'Inactive'];
 
@@ -48,7 +48,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'billingCode', label: 'Billing Code', type: 'text', required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, disabled: true, placeholder: 'Status is auto-calculated' },
+                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, placeholder: 'Status' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'carePlans':
@@ -58,7 +58,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'assignedStaffId', label: 'Assigned Staff', type: 'select', options: staffOptions, required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: [], required: true, disabled: true, placeholder: 'Set via Authorization' },
+                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, placeholder: 'Status' },
                 { name: 'goals', label: 'Care Goals', type: 'textarea', className: 'md:col-span-2' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
@@ -69,7 +69,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'authorizedHours', label: 'Authorized Hours', type: 'number', required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, disabled: true, placeholder: 'Status is auto-calculated' },
+                { name: 'status', label: 'Status', type: 'select', options: planStatusOptions, required: true, placeholder: 'Status' },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'staffCredentials':
@@ -100,7 +100,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
             ];
         case 'compliance':
             return [
-                { name: 'client', label: 'Client', type: 'text', required: true },
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
                 { name: 'type', label: 'Type', type: 'select', options: ['Authorization', 'Document', 'Certification'], required: true },
                 { name: 'item', label: 'Item', type: 'text', required: true },
                 { name: 'dueDate', label: 'Due Date', type: 'date', required: true },
@@ -118,7 +118,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
             ];
         case 'transportation':
             return [
-                { name: 'client', label: 'Client', type: 'select', options: clientOptions.map(c => ({value: c.label, label: c.label})), required: true },
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
                 { name: 'driver', label: 'Driver', type: 'text', required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
                 { name: 'pickup', label: 'Pickup Time', type: 'time', required: true },

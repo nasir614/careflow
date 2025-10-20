@@ -14,7 +14,6 @@ export type Client = {
   caseManagerEmail: string;
   insurance: string;
   status: 'active' | 'inactive';
-  serviceCode: string;
   createdAt: string;
   dob?: string;
   gender?: string;

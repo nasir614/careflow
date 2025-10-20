@@ -281,6 +281,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         return staffMember ? staffMember.name : 'Unknown Staff';
       };
 
+      const findServicePlanName = (planId: number | string) => {
+        const plan = servicePlans.find(p => String(p.id) === String(planId));
+        return plan ? plan.planName : 'Unknown Service Plan';
+      }
+
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         switch(module) {
@@ -319,14 +324,23 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setCarePlans(prev => [...prev, newItem]); 
             break;
           case 'authorizations': 
+             const servicePlan = servicePlans.find(p => p.id === newItem.servicePlanId);
              newItem = {
               ...newItem,
               clientName: findClientName(newItem.clientId),
-              // servicePlan name should be looked up
+              servicePlan: servicePlan?.planName || 'N/A',
+              serviceType: servicePlan?.type || 'N/A',
+              billingCode: servicePlan?.billingCode || 'N/A',
+              usedHours: 0,
             }
             setAuthorizations(prev => [...prev, newItem]); 
             break;
-          case 'compliance': setCompliance(prev => [...prev, newItem]); break;
+          case 'compliance': 
+            newItem = {
+              ...newItem,
+              client: findClientName(newItem.clientId),
+            }
+            setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
             newItem = {
               ...newItem,
@@ -337,10 +351,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setBilling(prev => [...prev, newItem]); 
             break;
           case 'transportation': 
-            const transClient = clients.find(c => c.id === data.clientId);
             newItem = {
               ...newItem,
-              client: transClient ? `${transClient.firstName} ${transClient.lastName}` : 'Unknown',
+              client: findClientName(newItem.clientId),
             };
             setTransportation(prev => [...prev, newItem]); 
             break;
@@ -401,13 +414,23 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); 
             break;
           case 'authorizations': 
+             const servicePlan = servicePlans.find(p => p.id === updatedItem.servicePlanId);
              updatedItem = {
               ...updatedItem,
               clientName: findClientName(updatedItem.clientId),
+              servicePlan: servicePlan?.planName || 'N/A',
+              serviceType: servicePlan?.type || 'N/A',
+              billingCode: servicePlan?.billingCode || 'N/A',
             }
             setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); 
             break;
-          case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
+          case 'compliance':
+            updatedItem = {
+              ...updatedItem,
+              client: findClientName(updatedItem.clientId),
+            }
+            setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); 
+            break;
           case 'billing': 
              updatedItem = {
               ...updatedItem,
@@ -417,10 +440,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
             break;
           case 'transportation': 
-            const transClient = clients.find(c => c.id === data.clientId);
             updatedItem = {
               ...updatedItem,
-              client: transClient ? `${transClient.firstName} ${transClient.lastName}` : 'Unknown',
+              client: findClientName(updatedItem.clientId),
             };
             setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); 
             break;

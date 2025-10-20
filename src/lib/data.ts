@@ -26,7 +26,6 @@ export const initialClients: Client[] = [
       insuranceSecondary: 'Medicare Part B',
       medicaidId: '123456789',
       status: 'active',
-      serviceCode: 'T2021',
       createdAt: '2024-01-15'
     },
     { 
@@ -47,7 +46,6 @@ export const initialClients: Client[] = [
       caseManagerEmail: 'sjones@medicaid.gov',
       insurance: 'Medicaid',
       status: 'active',
-      serviceCode: 'T1019',
       createdAt: '2024-02-20'
     },
     { 
@@ -68,7 +66,6 @@ export const initialClients: Client[] = [
       caseManagerEmail: 'mbrown@medicaid.gov',
       insurance: 'Private Insurance',
       status: 'active',
-      serviceCode: 'S5150',
       createdAt: '2024-03-10'
     },
     { 
@@ -89,7 +86,6 @@ export const initialClients: Client[] = [
       caseManagerEmail: 'jlee@medicaid.gov',
       insurance: 'Medicare',
       status: 'inactive',
-      serviceCode: 'T2021',
       createdAt: '2024-04-05'
     },
   ];
@@ -218,9 +214,9 @@ export const initialClients: Client[] = [
   ];
   
   export const initialAuthorizations: Authorization[] = [
-    { id: 1001, clientId: 101, clientName: 'John Doe', servicePlanId: 801, servicePlan: 'Standard Day Care', serviceType: 'Personal Care', billingCode: 'T2021', authorizedHours: 120, usedHours: 45.5, startDate: '2024-01-01', endDate: '2024-06-30', status: 'Active' },
-    { id: 1002, clientId: 102, clientName: 'Sarah Johnson', servicePlanId: 802, servicePlan: 'Enhanced Personal Support', serviceType: 'Personal Care', billingCode: 'T1019', authorizedHours: 80, usedHours: 80, startDate: '2024-01-01', endDate: '2024-03-31', status: 'Expired' },
-    { id: 1003, clientId: 103, clientName: 'Mike Williams', servicePlanId: 803, servicePlan: 'Socialization & Activities', serviceType: 'Social', billingCode: 'S5100', authorizedHours: 50, usedHours: 15, startDate: '2024-02-01', endDate: '2024-07-31', status: 'Active' },
+    { id: 1001, clientId: 101, servicePlanId: 801, clientName: 'John Doe', servicePlan: 'Standard Day Care', serviceType: 'Personal Care', billingCode: 'T2021', authorizedHours: 120, usedHours: 45.5, startDate: '2024-01-01', endDate: '2024-06-30', status: 'Active' },
+    { id: 1002, clientId: 102, servicePlanId: 802, clientName: 'Sarah Johnson', servicePlan: 'Enhanced Personal Support', serviceType: 'Personal Care', billingCode: 'T1019', authorizedHours: 80, usedHours: 80, startDate: '2024-01-01', endDate: '2024-03-31', status: 'Expired' },
+    { id: 1003, clientId: 103, servicePlanId: 803, clientName: 'Mike Williams', servicePlan: 'Socialization & Activities', serviceType: 'Social', billingCode: 'S5100', authorizedHours: 50, usedHours: 15, startDate: '2024-02-01', endDate: '2024-07-31', status: 'Active' },
   ];
 
   export const initialCompliance: Compliance[] = [
