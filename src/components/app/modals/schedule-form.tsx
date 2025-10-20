@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,8 +16,19 @@ interface ScheduleFormProps {
 }
 
 export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: ScheduleFormProps) {
-  const { clients, staff } = useCareFlow();
+  const { clients, staff, servicePlans } = useCareFlow();
   const [formData, setFormData] = useState<Partial<Schedule>>({});
+
+  const clientServicePlans = useMemo(() => {
+    if (!formData.clientId) return [];
+    return servicePlans.filter(p => String(p.clientId) === String(formData.clientId));
+  }, [formData.clientId, servicePlans]);
+
+  const selectedServicePlan = useMemo(() => {
+    if (!formData.servicePlanId) return null;
+    return clientServicePlans.find(p => String(p.id) === String(formData.servicePlanId));
+  }, [formData.servicePlanId, clientServicePlans]);
+
 
   useEffect(() => {
     if (item) {
@@ -39,7 +50,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
     setFormData(prev => ({ ...prev, [name]: isNumber ? parseFloat(value) : value }));
   };
 
-  const handleSelectChange = (name: keyof Schedule, value: string) => {
+  const handleSelectChange = (name: keyof Schedule | 'servicePlanId', value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -50,6 +61,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
       // Convert IDs back to numbers
       clientId: formData.clientId ? parseInt(String(formData.clientId), 10) : undefined,
       staffId: formData.staffId ? parseInt(String(formData.staffId), 10) : undefined,
+      servicePlanId: formData.servicePlanId ? parseInt(String(formData.servicePlanId), 10) : undefined,
       days: typeof formData.days === 'string' ? formData.days.split(',').map(d => d.trim()) : formData.days,
     };
     onSubmit(dataToSubmit);
@@ -78,24 +90,29 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
               </Select>
             </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Service Type</label>
-                <Select value={formData.serviceType || ""} onValueChange={(value) => handleSelectChange('serviceType', value)} required>
-                    <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
-                    <SelectContent>
-                        {['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Service Plan</label>
+              <Select value={String(formData.servicePlanId || '')} onValueChange={(value) => handleSelectChange('servicePlanId', value)} required disabled={!formData.clientId}>
+                <SelectTrigger><SelectValue placeholder="Select Service Plan" /></SelectTrigger>
+                <SelectContent>
+                  {clientServicePlans.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.planName} ({p.billingCode})</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-1">Service Code</label>
-                <Select value={formData.serviceCode || ""} onValueChange={(value) => handleSelectChange('serviceCode', value)} required>
-                    <SelectTrigger><SelectValue placeholder="Select Code" /></SelectTrigger>
-                    <SelectContent>
-                       {['T2021', 'T1019', 'S5150', 'T1005'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+                <Input value={selectedServicePlan?.billingCode || ''} readOnly placeholder="Service Billing Code" />
+            </div>
+        </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Service Plan Start Date</label>
+                <Input type="date" value={selectedServicePlan?.startDate || ''} readOnly />
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Service Plan End Date</label>
+                <Input type="date" value={selectedServicePlan?.endDate || ''} readOnly />
             </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -119,11 +136,11 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Start Date</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Schedule Start Date</label>
                 <Input type="date" name="startDate" value={formData.startDate || ''} onChange={handleChange} required />
             </div>
              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">End Date</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Schedule End Date</label>
                 <Input type="date" name="endDate" value={formData.endDate || ''} onChange={handleChange} required />
             </div>
         </div>

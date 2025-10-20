@@ -116,6 +116,7 @@ export type Schedule = {
   clientName: string;
   staffId: number;
   staffName: string;
+  servicePlanId?: number;
   serviceType: string;
   serviceCode: string;
   frequency: string;
@@ -157,7 +158,7 @@ export type CarePlan = {
   assignedStaff: string;
   status: PlanStatus;
   startDate: string;
-  endDate: string;
+endDate: string;
   goals: string;
   notes?: string;
 };
