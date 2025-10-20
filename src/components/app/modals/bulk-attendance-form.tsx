@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, X, Calendar as CalendarIcon, Plus, Trash2 } from 'lucide-react';
-import type { Attendance, Client, Staff } from '@/lib/types';
+import { Loader2, Save, X, Trash2 } from 'lucide-react';
+import type { Attendance } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { format, getDaysInMonth, isValid, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface BulkAttendanceFormProps {
   onSubmit: (data: any) => void;
@@ -132,7 +133,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
         return;
     }
 
-    const logsToSubmit = dailyLogs.filter(log => log.checkInAM && log.checkOutAM);
+    const logsToSubmit = dailyLogs.filter(log => (log.checkInAM && log.checkOutAM) || log.status !== 'present');
 
     onSubmit({
       client,
@@ -207,11 +208,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                     </div>
                 </CardHeader>
                 <CardContent className="max-h-[40vh] overflow-y-auto pr-3">
-                <div className="space-y-3">
+                <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
-                    const dateObj = parse(log.date, 'yyyy-MM-dd', new Date());
-                    const dayName = isValid(dateObj) ? format(dateObj, 'EEE') : 'Invalid';
-                    
+                    const dayName = isValid(new Date(log.date)) ? format(parse(log.date, 'yyyy-MM-dd', new Date()), 'EEE') : '...';
                     return (
                       <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
@@ -251,7 +250,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                   }) : <p className="text-muted-foreground text-center py-4">Please select a client, staff, and service to see attendance logs.</p>}
                   </div>
                   <div className="mt-4 flex justify-center">
-                    <Input type="date" className="w-48" onChange={(e) => addCustomDate(e.target.value ? new Date(e.target.value + 'T12:00:00') : undefined)} />
+                    <Input type="date" className="w-48" onChange={(e) => addCustomDate(e.target.valueAsDate ?? undefined)} />
                   </div>
                 </CardContent>
             </Card>
