@@ -10,6 +10,18 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Printer, Filter, X } from 'lucide-react';
 import type { Client } from '@/lib/types';
+import { cn } from '@/lib/utils';
+
+const getStatusBadgeClass = (status: Client['status']) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-700';
+    case 'inactive':
+    default:
+      return 'bg-red-100 text-red-700';
+  }
+};
+
 
 const columns: ColumnDef<Client>[] = [
   {
@@ -35,12 +47,12 @@ const columns: ColumnDef<Client>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'active' ? 'badge-success' : 'badge-danger'}`}>{row.status}</span>,
+    cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
   },
   {
     accessorKey: 'actions',
     header: 'Actions',
-    cell: () => null, // Rendered by DataTable
+    cell: () => null,
   },
 ];
 

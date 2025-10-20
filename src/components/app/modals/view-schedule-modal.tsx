@@ -3,13 +3,14 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Users, UserCog, Clock, ClipboardCheck, DollarSign } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ViewScheduleModalProps {
   schedule: Schedule;
 }
 
 const StatBlock: React.FC<{ title: string; value: React.ReactNode; color: string }> = ({ title, value, color }) => (
-    <div className={`bg-muted/70 rounded-lg p-4 text-center border-t-4 ${color}`}>
+    <div className={cn("bg-muted/70 rounded-lg p-4 text-center border-t-4", color)}>
         <div className="text-2xl font-bold font-headline">{value}</div>
         <div className="text-xs text-muted-foreground">{title}</div>
     </div>
@@ -33,15 +34,27 @@ const InfoItem: React.FC<{ label: string; value: React.ReactNode; }> = ({ label,
 );
 
 export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) {
-  const { openModal } = useCareFlow();
+  const { openModal, clients } = useCareFlow();
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const unitUsage = schedule.totalUnits > 0 ? (schedule.usedUnits / schedule.totalUnits) * 100 : 0;
   const daysRemaining = Math.ceil((new Date(schedule.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  
+  const getStatusBadgeClass = (status: Schedule['status']) => {
+    switch (status) {
+      case 'active':
+        return 'badge-success';
+      case 'pending':
+        return 'badge-warning';
+      case 'expired':
+      default:
+        return 'badge-danger';
+    }
+  };
 
   return (
     <div className="space-y-6">
       <header className="flex items-start gap-4 pb-6 border-b">
-         <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground">
+         <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/80 to-accent flex items-center justify-center text-primary-foreground">
             <Calendar className="w-8 h-8" />
         </div>
         <div className="flex-1">
@@ -49,7 +62,7 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
             {schedule.serviceType}
           </h3>
           <div className="flex items-center gap-4 mt-1">
-             <span className={`badge ${schedule.status === 'active' ? 'badge-success' : schedule.status === 'expired' ? 'badge-danger' : 'badge-warning'}`}>
+             <span className={cn('badge', getStatusBadgeClass(schedule.status))}>
               {schedule.status}
             </span>
             <span className="text-sm text-muted-foreground">Service Code: {schedule.serviceCode}</span>
@@ -59,7 +72,7 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
 
       <div className="grid grid-cols-3 gap-4">
         <StatBlock title="Units Remaining" value={schedule.totalUnits - schedule.usedUnits} color="border-primary" />
-        <StatBlock title="Hours Per Day" value={`${schedule.hoursPerDay}h`} color="border-accent" />
+        <StatBlock title="Hours Per Day" value={`${schedule.hoursPerDay}h`} color="border-accent-foreground" />
         <StatBlock title="Days Remaining" value={daysRemaining > 0 ? daysRemaining : 0} color={daysRemaining < 30 ? 'border-destructive' : 'border-green-500'} />
       </div>
 
@@ -80,9 +93,9 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
           <CardContent>
              <div className="grid grid-cols-7 gap-2">
                 {daysOfWeek.map(day => {
-                    const isScheduled = Array.isArray(schedule.days) && schedule.days.includes(day);
+                    const isScheduled = Array.isArray(schedule.days) && schedule.days.map(d => d.toLowerCase()).includes(day.toLowerCase());
                     return (
-                        <div key={day} className={`p-3 rounded-lg text-center border-2 ${isScheduled ? 'bg-primary/10 border-primary/40 text-primary' : 'bg-muted/50 border-transparent text-muted-foreground'}`}>
+                        <div key={day} className={cn('p-3 rounded-lg text-center border-2', isScheduled ? 'bg-primary/10 border-primary/40 text-primary' : 'bg-muted/50 border-transparent text-muted-foreground')}>
                             <div className="text-xs font-semibold mb-1">{day.slice(0, 3).toUpperCase()}</div>
                             {isScheduled && <Clock className="w-4 h-4 mx-auto" />}
                         </div>
@@ -120,7 +133,6 @@ export default function ViewScheduleModal({ schedule }: ViewScheduleModalProps) 
                     <p className="text-sm font-medium">View Billing</p>
                 </button>
                 <button onClick={() => {
-                    const { clients } = useCareFlow.getState();
                     const client = clients.find(c => c.id === schedule.clientId);
                     if(client) openModal('view', 'clients', client);
                 }} className="bg-muted p-4 rounded-lg hover:bg-muted/80">

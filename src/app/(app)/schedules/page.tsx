@@ -11,6 +11,19 @@ import { Bot } from 'lucide-react';
 import type { Schedule } from '@/lib/types';
 import { optimizeCaregiverRoutes } from '@/ai/flows/optimize-caregiver-routes';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+const getStatusBadgeClass = (status: Schedule['status']) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-700';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'expired':
+    default:
+      return 'bg-red-100 text-red-700';
+  }
+};
 
 
 const columns: ColumnDef<Schedule>[] = [
@@ -50,7 +63,7 @@ const columns: ColumnDef<Schedule>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'active' ? 'badge-success' : row.status === 'expired' ? 'badge-danger' : 'badge-warning'}`}>{row.status}</span>,
+    cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
   },
   {
     accessorKey: 'actions',
@@ -75,7 +88,6 @@ export default function SchedulesPage() {
   const handleOptimizeRoutes = async () => {
     setIsOptimizing(true);
     try {
-      // Dummy data for AI call as per function signature
       const caregiverSchedules = JSON.stringify(schedules.map(s => ({
         caregiverId: s.staffId,
         clientId: s.clientId,
@@ -87,7 +99,6 @@ export default function SchedulesPage() {
         preferredCaregiver: null,
         notes: "No specific preferences noted."
       })));
-      // A very simplified travel time matrix
       const travelTimeMatrix = JSON.stringify({ "1-2": 15, "1-3": 25, "2-3": 20 });
 
       const result = await optimizeCaregiverRoutes({
