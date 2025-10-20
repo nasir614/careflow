@@ -7,10 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, CalendarDays, PlusCircle } from 'lucide-react';
+import { Loader2, Save, CalendarDays, PlusCircle, X } from 'lucide-react';
 import type { BulkAttendanceData, AttendanceStatus, Client } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
-import { format, startOfMonth, isValid } from 'date-fns';
+import { format, startOfMonth, isValid, addDays } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DailyLog {
@@ -35,7 +35,6 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [selectedServiceType, setSelectedServiceType] = useState<string>('Adult Day Care');
   
-  const [customDate, setCustomDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
 
   // Default values to apply to all rows
@@ -49,35 +48,49 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
     setDailyLogs([]);
   }, [selectedClient]);
 
-  const addDateEntry = (dateStr: string) => {
+  const addDateEntry = (dateStr: string, insertAfterIndex?: number) => {
     if (dateStr && !dailyLogs.some(log => log.date === dateStr)) {
       const newLog: DailyLog = {
         date: dateStr,
-        status: 'present',
-        checkInAM: '09:00',
+        status: defaultStatus,
+        checkInAM: defaultCheckInAM,
         checkOutAM: '',
         checkInPM: '',
-        checkOutPM: '15:00',
+        checkOutPM: defaultCheckOutPM,
         notes: '',
         isHoliday: false,
       };
-      // Add and sort
-      setDailyLogs(prevLogs => [...prevLogs, newLog].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+
+      let newLogs = [...dailyLogs];
+      if (insertAfterIndex !== undefined) {
+          newLogs.splice(insertAfterIndex + 1, 0, newLog);
+      } else {
+          newLogs.push(newLog);
+      }
+      
+      newLogs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setDailyLogs(newLogs);
     }
   };
-
-  const handleAddCustomDate = () => {
-    if(isValid(new Date(customDate))) {
-      addDateEntry(customDate);
+  
+  useEffect(() => {
+    if (dailyLogs.length === 0) {
+      addDateEntry(format(new Date(), 'yyyy-MM-dd'));
     }
-  };
+  }, [dailyLogs]);
 
-  const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
+  const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string | boolean) => {
     const newLogs = [...dailyLogs];
     (newLogs[index] as any)[field] = value;
     setDailyLogs(newLogs);
   };
   
+  const removeDateEntry = (index: number) => {
+    const newLogs = [...dailyLogs];
+    newLogs.splice(index, 1);
+    setDailyLogs(newLogs);
+  };
+
   const applyDefaults = () => {
     setDailyLogs(logs => logs.map(log => ({
       ...log,
@@ -178,30 +191,15 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
                 <Button type="button" onClick={applyDefaults} className="w-full">Apply to All</Button>
               </div>
 
-              {/* Add Date Bar */}
-              <div className="flex items-end gap-2 p-3 border rounded-lg">
-                  <div className="flex-grow">
-                      <Label>Add a date</Label>
-                      <Input type="date" value={customDate} onChange={(e) => setCustomDate(e.target.value)} />
-                  </div>
-                  <Button type="button" variant="outline" size="icon" onClick={handleAddCustomDate}>
-                      <PlusCircle className="w-5 h-5" />
-                  </Button>
-              </div>
-
               {/* Timesheet Grid */}
               <ScrollArea className="h-[40vh] w-full border rounded-lg">
                 <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
                     const day = new Date(log.date + 'T12:00:00'); // Use noon to avoid timezone shifts
                     return (
-                      <div key={log.date} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
+                      <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                               <div>{format(day, 'EEE, dd')}</div>
-                               <div className="text-xs text-muted-foreground">{format(day, 'MMMM yyyy')}</div>
-                            </div>
+                            <Input type="date" value={log.date} onChange={e => handleDailyLogChange(index, 'date', e.target.value)} className="w-full" />
                           </div>
                           <div className="col-span-6 sm:col-span-2">
                              <Select value={log.status} onValueChange={(val) => handleDailyLogChange(index, 'status', val)}>
@@ -215,15 +213,23 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
                           <div className="col-span-6 sm:col-span-2">
                             <Input type="time" value={log.checkOutPM} onChange={e => handleDailyLogChange(index, 'checkOutPM', e.target.value)} disabled={log.status !== 'present'} />
                           </div>
-                          <div className="col-span-6 sm:col-span-4">
+                          <div className="col-span-12 sm:col-span-3">
                             <Input placeholder="Notes..." value={log.notes} onChange={e => handleDailyLogChange(index, 'notes', e.target.value)} />
+                          </div>
+                          <div className="col-span-12 sm:col-span-1 flex items-center justify-end gap-1">
+                               <Button type="button" variant="ghost" size="icon" onClick={() => addDateEntry(format(addDays(day, 1), 'yyyy-MM-dd'), index)}>
+                                  <PlusCircle className="w-4 h-4" />
+                               </Button>
+                               <Button type="button" variant="ghost" size="icon" onClick={() => removeDateEntry(index)} disabled={dailyLogs.length <= 1}>
+                                  <X className="w-4 h-4 text-destructive" />
+                               </Button>
                           </div>
                       </div>
                     )
                   }) : (
                      <div className="text-center py-10 text-muted-foreground">
                         <p>No dates added yet.</p>
-                        <p className="text-sm">Use the field above to add service dates to this timesheet.</p>
+                        <p className="text-sm">Click the plus button to add a service date.</p>
                     </div>
                   )}
                 </div>
