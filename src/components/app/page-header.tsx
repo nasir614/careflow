@@ -37,7 +37,7 @@ export function PageHeader({ title, breadcrumbs, children }: PageHeaderProps) {
         </ol>
       </nav>
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-headline font-bold text-foreground">{title}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         <div className="flex items-center gap-2">
             {children}
         </div>
