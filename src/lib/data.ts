@@ -93,10 +93,10 @@ export const initialClients: Client[] = [
   ];
 
   export const initialAttendance: Attendance[] = [
-    { id: 1, clientId: 1, clientName: 'John Doe', staffId: 2, staffName: 'John Caregiver', date: '2025-10-19', checkInAM: '09:00', checkOutAM: '12:00', checkInPM: '13:00', checkOutPM: '15:30', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: 'Regular day', createdAt: '2025-10-19T15:30:00Z' },
-    { id: 2, clientId: 2, clientName: 'Sarah Johnson', staffId: 3, staffName: 'Lisa Nurse', date: '2025-10-19', checkInAM: '08:45', checkOutAM: '12:00', checkInPM: '12:30', checkOutPM: '15:15', totalHours: 6, location: 'Daycare Center', billingCode: 'T1019', status: 'present', notes: '', createdAt: '2025-10-19T15:15:00Z' },
-    { id: 3, clientId: 3, clientName: 'Mike Williams', staffId: 2, staffName: 'John Caregiver', date: '2025-10-19', checkInAM: '09:15', checkOutAM: '12:15', checkInPM: '', checkOutPM: '', totalHours: 3, location: 'Home Visit', billingCode: 'T2021', status: 'excused', notes: 'Medical appt in afternoon', createdAt: '2025-10-19T12:15:00Z' },
-    { id: 4, clientId: 1, clientName: 'John Doe', staffId: 2, staffName: 'John Caregiver', date: '2025-10-18', checkInAM: '09:02', checkOutAM: '12:05', checkInPM: '13:00', checkOutPM: '15:33', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: '', createdAt: '2025-10-18T15:33:00Z' },
+    { id: 1, clientId: 1, clientName: 'John Doe', staffId: 2, staffName: 'John Caregiver', serviceType: 'Adult Day Care', date: '2025-10-19', checkInAM: '09:00', checkOutAM: '12:00', checkInPM: '13:00', checkOutPM: '15:30', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: 'Regular day', createdAt: '2025-10-19T15:30:00Z' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', staffId: 3, staffName: 'Lisa Nurse', serviceType: 'Personal Care', date: '2025-10-19', checkInAM: '08:45', checkOutAM: '12:00', checkInPM: '12:30', checkOutPM: '15:15', totalHours: 6, location: 'Daycare Center', billingCode: 'T1019', status: 'present', notes: '', createdAt: '2025-10-19T15:15:00Z' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', staffId: 2, staffName: 'John Caregiver', serviceType: 'Day Support', date: '2025-10-19', checkInAM: '09:15', checkOutAM: '12:15', checkInPM: '', checkOutPM: '', totalHours: 3, location: 'Home Visit', billingCode: 'T2021', status: 'excused', notes: 'Medical appt in afternoon', createdAt: '2025-10-19T12:15:00Z' },
+    { id: 4, clientId: 1, clientName: 'John Doe', staffId: 2, staffName: 'John Caregiver', serviceType: 'Adult Day Care', date: '2025-10-18', checkInAM: '09:02', checkOutAM: '12:05', checkInPM: '13:00', checkOutPM: '15:33', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: '', createdAt: '2025-10-18T15:33:00Z' },
 ];
 
   export const initialCompliance: Compliance[] = [

@@ -33,6 +33,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
     const clientOptions = clients.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }));
     const staffOptions = staff.map(s => ({ value: s.id.toString(), label: s.name }));
     const roleOptions = staff.map(s => s.role);
+    const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
 
     switch (module) {
         case 'staffCredentials':
@@ -63,13 +64,14 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
              return [
                 { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
                 { name: 'staffId', label: 'Staff', type: 'select', options: staffOptions, required: true },
+                { name: 'serviceType', label: 'Service Type', type: 'select', options: serviceTypeOptions, required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
                 { name: 'location', label: 'Location', type: 'text', required: true },
+                { name: 'billingCode', label: 'Billing Code', type: 'text' },
                 { name: 'checkInAM', label: 'Check In (AM)', type: 'time' },
                 { name: 'checkOutAM', label: 'Check Out (AM)', type: 'time' },
                 { name: 'checkInPM', label: 'Check In (PM)', type: 'time' },
                 { name: 'checkOutPM', label: 'Check Out (PM)', type: 'time' },
-                { name: 'billingCode', label: 'Billing Code', type: 'text' },
                 { name: 'status', label: 'Status', type: 'select', options: ['present', 'absent', 'excused'], required: true },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' }
             ];

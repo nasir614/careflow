@@ -8,8 +8,10 @@ import { Pagination } from '@/components/app/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, History } from 'lucide-react';
 import type { Attendance } from '@/lib/types';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const columns: ColumnDef<Attendance>[] = [
   {
@@ -64,6 +66,34 @@ const columns: ColumnDef<Attendance>[] = [
   },
 ];
 
+const historicalColumns: ColumnDef<Attendance>[] = [
+  { accessorKey: 'clientName', header: 'Client', cell: (row) => row.clientName },
+  { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
+  { accessorKey: 'serviceType', header: 'Service Type', cell: (row) => row.serviceType },
+  { accessorKey: 'date', header: 'Date', cell: (row) => row.date },
+  {
+    accessorKey: 'timeIn',
+    header: 'Time In',
+    cell: (row) => `${row.checkInAM || ''}${row.checkInAM && row.checkInPM ? ' | ' : ''}${row.checkInPM || ''}`,
+  },
+  {
+    accessorKey: 'timeOut',
+    header: 'Time Out',
+    cell: (row) => `${row.checkOutAM || ''}${row.checkOutAM && row.checkOutPM ? ' | ' : ''}${row.checkOutPM || ''}`,
+  },
+  { accessorKey: 'totalHours', header: 'Total Hours', cell: (row) => row.totalHours.toFixed(2) },
+  {
+    accessorKey: 'details',
+    header: 'Details',
+    cell: (row) => (
+      <div className='text-xs'>
+        <div>Status: <span className='font-medium'>{row.status}</span></div>
+        {row.notes && <div>Notes: <span className='italic'>{row.notes}</span></div>}
+      </div>
+    ),
+  },
+];
+
 const ITEMS_PER_PAGE = 8;
 
 export default function AttendancePage() {
@@ -89,6 +119,10 @@ export default function AttendancePage() {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
+  
+  const sortedHistoricalData = useMemo(() => {
+    return [...attendance].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [attendance]);
 
   const clearFilters = () => {
     setDateFilter('');
@@ -147,6 +181,29 @@ export default function AttendancePage() {
         itemsPerPage={ITEMS_PER_PAGE}
         onPageChange={setCurrentPage}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+            <History className="w-6 h-6 text-primary" />
+            Historical Attendance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            A detailed log of all attendance records since the beginning. This view is for archival and audit purposes.
+          </p>
+          <ScrollArea className="h-[400px] w-full">
+            <DataTable
+              columns={historicalColumns}
+              data={sortedHistoricalData}
+              onView={(row) => openModal('view', 'attendance', row)}
+              onEdit={(row) => openModal('edit', 'attendance', row)}
+              onDelete={(row) => openModal('delete', 'attendance', row)}
+            />
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }

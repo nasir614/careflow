@@ -52,6 +52,7 @@ export type Attendance = {
   clientName: string;
   staffId: number;
   staffName: string;
+  serviceType: string;
   date: string;
   checkInAM: string;
   checkOutAM: string;
