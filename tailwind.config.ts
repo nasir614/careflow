@@ -10,10 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Alegreya"', 'serif'],
-        body: ['"Alegreya"', 'serif'],
-        headline: ['"Belleza"', 'sans-serif'],
-        code: ['monospace'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -52,7 +50,7 @@ export default {
         
         accentPink: "#FF7BAC",
         accentOrange: "#FFB347",
-        textPrimary: "#1E1E1E",
+        textPrimary: "#1F2937",
         textMuted: "#6B7280",
         success: 'hsl(var(--success))',
         warning: 'hsl(var(--warning))',

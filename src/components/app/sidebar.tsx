@@ -79,7 +79,7 @@ export function Sidebar() {
     <aside className="w-64 bg-white/90 backdrop-blur-sm border-r border-gray-200 shadow-lg flex flex-col no-print">
       <div className="flex items-center p-6">
         <div className="h-8 w-8 bg-gradient-primary rounded-lg"></div>
-        <h2 className="ml-3 text-xl font-bold bg-gradient-accent bg-clip-text text-transparent">
+        <h2 className="ml-3 text-xl font-bold font-display bg-gradient-accent bg-clip-text text-transparent">
           CareFlow
         </h2>
       </div>
