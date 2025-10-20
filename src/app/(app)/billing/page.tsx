@@ -35,6 +35,11 @@ const columns: ColumnDef<Billing>[] = [
     cell: (row) => row.invoiceNo,
   },
   {
+    accessorKey: 'scheduleId',
+    header: 'Schedule ID',
+    cell: (row) => `SCH-${row.scheduleId}`,
+  },
+  {
     accessorKey: 'clientName',
     header: 'Client',
     cell: (row) => row.clientName,
