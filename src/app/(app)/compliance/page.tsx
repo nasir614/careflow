@@ -10,6 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const columns: ColumnDef<Compliance>[] = [
   {
+    accessorKey: 'id',
+    header: 'ID',
+    cell: (row) => `COMP-${row.id}`,
+  },
+  {
     accessorKey: 'client',
     header: 'Client',
     cell: (row) => row.client,

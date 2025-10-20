@@ -18,6 +18,11 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const scheduleColumns: ColumnDef<Schedule>[] = [
   {
+    accessorKey: 'id',
+    header: 'Schedule ID',
+    cell: (row) => `SCH-${row.id}`,
+  },
+  {
     accessorKey: 'clientName',
     header: 'Client',
     cell: (row) => row.clientName,
@@ -69,6 +74,11 @@ const getCredentialStatus = (expiryDate: string | null) => {
 
 
 const credentialColumns: ColumnDef<StaffCredential>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Credential ID',
+      cell: (row) => `CRED-${row.id}`,
+    },
     {
       accessorKey: 'credential',
       header: 'Credential/Document',

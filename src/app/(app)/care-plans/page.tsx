@@ -24,6 +24,11 @@ const getStatusBadgeClass = (status: PlanStatus) => {
 
 const columns: ColumnDef<CarePlan>[] = [
   {
+    accessorKey: 'id',
+    header: 'Plan ID',
+    cell: (row) => `CP-${row.id}`,
+  },
+  {
     accessorKey: 'clientName',
     header: 'Client',
     cell: (row) => row.clientName,

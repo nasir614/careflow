@@ -24,6 +24,11 @@ const getStatusBadgeClass = (status: PlanStatus) => {
 
 const columns: ColumnDef<Authorization>[] = [
   {
+    accessorKey: 'id',
+    header: 'Auth ID',
+    cell: (row) => `AUTH-${row.id}`,
+  },
+  {
     accessorKey: 'clientName',
     header: 'Client',
     cell: (row) => row.clientName,

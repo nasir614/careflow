@@ -39,6 +39,11 @@ const allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturd
 
 const columns: ColumnDef<Schedule>[] = [
   {
+    accessorKey: 'id',
+    header: 'Schedule ID',
+    cell: (row) => `SCH-${row.id}`,
+  },
+  {
     accessorKey: 'clientName',
     header: 'Client',
     cell: (row) => row.clientName,
@@ -108,6 +113,11 @@ const columns: ColumnDef<Schedule>[] = [
 
 
 const servicePlanColumns: ColumnDef<Schedule>[] = [
+  {
+    accessorKey: 'id',
+    header: 'Schedule ID',
+    cell: (row) => `SCH-${row.id}`,
+  },
   {
     accessorKey: 'clientName',
     header: 'Client',

@@ -31,7 +31,7 @@ const getStatusBadgeVariant = (status: Attendance['status']) => {
 };
 
 const columns: ColumnDef<Attendance>[] = [
-    {
+  {
     accessorKey: 'id',
     header: 'Attendance ID',
     cell: (row) => `ATT-${row.id}`,
