@@ -32,11 +32,11 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const dialogContentVariants = cva(
-  "fixed z-50 gap-4 border-none shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 bg-white p-6",
+  "fixed z-50 gap-4 border-none shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 bg-white p-0",
   {
     variants: {
       side: {
-        center: "left-[50%] top-[50%] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] sm:rounded-2xl",
+        center: "left-[50%] top-[50%] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-2xl",
         left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
         right: "inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
       },
@@ -79,7 +79,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      "flex flex-col space-y-1.5 text-center sm:text-left px-6 pt-6",
       className
     )}
     {...props}
@@ -93,7 +93,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 px-6 pb-6",
       className
     )}
     {...props}

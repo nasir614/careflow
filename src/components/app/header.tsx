@@ -40,7 +40,7 @@ export function Header({
   const canAdd = activeModule && activeModule !== 'dashboard' && activeModule !== 'reports';
 
   return (
-    <header className="bg-transparent px-6 h-16 flex items-center justify-between sticky top-0 z-10 no-print mb-8">
+    <header className="bg-transparent px-4 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-10 no-print mb-8">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
                 <Menu className="w-6 h-6" />

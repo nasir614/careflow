@@ -186,15 +186,15 @@ export default function AttendancePage() {
 
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
             <Input 
               type="date"
               value={dateFilter}
               onChange={e => setDateFilter(e.target.value)}
-              className="max-w-xs"
+              className="w-full sm:max-w-xs"
             />
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All Clients" />
               </SelectTrigger>
               <SelectContent>
@@ -203,7 +203,7 @@ export default function AttendancePage() {
               </SelectContent>
             </Select>
             <Select value={staffFilter} onValueChange={setStaffFilter}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="All Staff" />
               </SelectTrigger>
               <SelectContent>
@@ -279,9 +279,9 @@ export default function AttendancePage() {
                   {serviceTypeOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center gap-2">
                 <Input type="date" value={historicalStartDate} onChange={e => setHistoricalStartDate(e.target.value)} />
-                <span className="text-muted-foreground">-</span>
+                <span className="text-muted-foreground hidden sm:block">-</span>
                 <Input type="date" value={historicalEndDate} onChange={e => setHistoricalEndDate(e.target.value)} />
               </div>
               <div className="lg:col-start-4 flex justify-end">

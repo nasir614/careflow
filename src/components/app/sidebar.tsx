@@ -21,7 +21,11 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+} from "@/components/ui/sheet"
 
 const navGroups = [
   {
@@ -54,12 +58,13 @@ const navGroups = [
 ];
 
 
-const NavItem = ({ item, pathname }: { item: { name: string; href: string; icon: React.ElementType }; pathname: string }) => {
+const NavItem = ({ item, pathname, onClick }: { item: { name: string; href: string; icon: React.ElementType }; pathname: string, onClick?: () => void }) => {
   const isActive = pathname.startsWith(item.href);
   const Icon = item.icon;
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200 text-sm',
         isActive && 'bg-indigo-50 text-indigo-600 font-medium'
@@ -73,7 +78,7 @@ const NavItem = ({ item, pathname }: { item: { name: string; href: string; icon:
   );
 };
 
-const SidebarContent = () => {
+const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const pathname = usePathname();
     return (
         <>
@@ -90,7 +95,7 @@ const SidebarContent = () => {
                     <h4 className="text-xs uppercase font-semibold text-gray-500 mb-2 tracking-wide px-3">{group.title}</h4>
                     <div className="space-y-1">
                     {group.items.map((item) => (
-                        <NavItem key={item.name} item={item} pathname={pathname} />
+                        <NavItem key={item.name} item={item} pathname={pathname} onClick={onLinkClick} />
                     ))}
                     </div>
                 </div>
@@ -111,19 +116,14 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (op
   return (
     <>
       {/* Mobile Sidebar */}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogOverlay className="md:hidden bg-black/40" />
-          <DialogContent 
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetContent 
               side="left" 
               className="md:hidden w-64 bg-white/90 backdrop-blur-sm p-0 m-0 border-r border-gray-200 h-full flex flex-col"
-              onInteractOutside={() => setIsOpen(false)}
           >
-              <SidebarContent />
-              <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
-                  <X className="w-5 h-5" />
-              </button>
-          </DialogContent>
-      </Dialog>
+              <SidebarContent onLinkClick={() => setIsOpen(false)} />
+          </SheetContent>
+      </Sheet>
       
       {/* Desktop Sidebar */}
       <aside className="w-64 bg-white/90 backdrop-blur-sm border-r border-gray-200 shadow-lg flex-col no-print hidden md:flex">

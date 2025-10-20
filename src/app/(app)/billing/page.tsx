@@ -117,9 +117,9 @@ export default function BillingPage() {
       
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="All Clients" />
               </SelectTrigger>
               <SelectContent>
@@ -128,7 +128,7 @@ export default function BillingPage() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>

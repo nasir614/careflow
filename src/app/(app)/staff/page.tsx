@@ -180,7 +180,7 @@ export default function StaffPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
                     <SelectContent>
@@ -233,8 +233,8 @@ export default function StaffPage() {
       {selectedStaff ? (
         <Card>
             <CardHeader>
-                <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16 border-2 border-primary/20">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <Avatar className="w-16 h-16 border-2 border-primary/20 shrink-0">
                         <AvatarImage src={getStaffAvatar(selectedStaff.id)} alt={selectedStaff.name} />
                         <AvatarFallback className="text-2xl">{selectedStaff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
@@ -242,11 +242,11 @@ export default function StaffPage() {
                         <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
                         <p className="text-muted-foreground">{selectedStaff.role}</p>
                     </div>
-                      <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
+                      <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0 mt-2 sm:mt-0')}>{selectedStaff.status}</Badge>
                 </div>
             </CardHeader>
             <CardContent className="border-t pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
                     <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
                     <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
@@ -264,7 +264,7 @@ export default function StaffPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between text-lg">
+              <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between text-lg gap-2">
                 <div className="flex items-center gap-2">
                     <CalendarRange className="w-5 h-5 text-primary" />
                     Schedules for {selectedStaff.name}
@@ -287,12 +287,12 @@ export default function StaffPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between text-lg">
+              <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between text-lg gap-4">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-primary" />
                     Credentials & Training for {selectedStaff.name}
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-3 text-sm flex-wrap">
                     <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
                     <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
                     <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
