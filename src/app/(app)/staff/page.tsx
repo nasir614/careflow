@@ -8,9 +8,10 @@ import { Pagination } from '@/components/app/pagination';
 import type { Staff, Schedule, StaffCredential } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarRange, ShieldCheck } from 'lucide-react';
+import { CalendarRange, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Button } from '@/components/ui/button';
 
 const scheduleColumns: ColumnDef<Schedule>[] = [
   {
@@ -67,7 +68,7 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
     {
         accessorKey: 'isCritical',
         header: 'Critical',
-        cell: (row) => row.isCritical ? <ShieldCheck className="w-5 h-5 text-destructive" /> : null,
+        cell: (row) => row.isCritical ? <ShieldAlert className="w-5 h-5 text-destructive" /> : null,
     },
     {
       accessorKey: 'actions',
@@ -106,7 +107,11 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Staff Management" breadcrumbs={[{ name: 'Staff' }]} />
+      <PageHeader title="Staff Management" breadcrumbs={[{ name: 'Staff' }]}>
+         <Button variant="outline" size="sm" onClick={() => openModal('add', 'staff')}>
+          + Add New Staff
+        </Button>
+      </PageHeader>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
