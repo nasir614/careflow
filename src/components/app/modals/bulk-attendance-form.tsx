@@ -3,14 +3,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, CalendarDays, PlusCircle, X } from 'lucide-react';
+import { Loader2, Save, PlusCircle, X } from 'lucide-react';
 import type { BulkAttendanceData, AttendanceStatus, Client } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
-import { format, startOfMonth, isValid, addDays } from 'date-fns';
+import { format, getDaysInMonth, setMonth, setYear, isValid, addDays } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DailyLog {
@@ -24,6 +22,13 @@ interface DailyLog {
   isHoliday: boolean;
 }
 
+const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i);
+const months = Array.from({ length: 12 }, (_, i) => ({
+  value: i,
+  label: format(new Date(0, i), 'MMMM'),
+}));
+
+
 export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
   onSubmit: (data: BulkAttendanceData) => void;
   isLoading: boolean;
@@ -33,9 +38,12 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
   
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
-  const [selectedServiceType, setSelectedServiceType] = useState<string>('Adult Day Care');
   
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [customDate, setCustomDate] = useState('');
 
   // Default values to apply to all rows
   const [defaultStatus, setDefaultStatus] = useState<AttendanceStatus>('present');
@@ -44,14 +52,37 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
 
 
   useEffect(() => {
-    // When client changes, reset the logs
-    setDailyLogs([]);
-  }, [selectedClient]);
+    if (selectedClient) {
+      generateMonthDays();
+    } else {
+      setDailyLogs([]);
+    }
+  }, [selectedClient, selectedMonth, selectedYear]);
 
-  const addDateEntry = (dateStr: string, insertAfterIndex?: number) => {
-    if (dateStr && !dailyLogs.some(log => log.date === dateStr)) {
+  const generateMonthDays = () => {
+    const date = setYear(setMonth(new Date(), selectedMonth), selectedYear);
+    const daysInMonth = getDaysInMonth(date);
+    const logs: DailyLog[] = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dayDate = new Date(selectedYear, selectedMonth, i);
+        logs.push({
+            date: format(dayDate, 'yyyy-MM-dd'),
+            status: defaultStatus,
+            checkInAM: defaultCheckInAM,
+            checkOutAM: '',
+            checkInPM: '',
+            checkOutPM: defaultCheckOutPM,
+            notes: '',
+            isHoliday: false,
+        });
+    }
+    setDailyLogs(logs);
+  };
+
+  const addCustomDate = () => {
+    if (customDate && !dailyLogs.some(log => log.date === customDate)) {
       const newLog: DailyLog = {
-        date: dateStr,
+        date: customDate,
         status: defaultStatus,
         checkInAM: defaultCheckInAM,
         checkOutAM: '',
@@ -60,24 +91,12 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
         notes: '',
         isHoliday: false,
       };
-
-      let newLogs = [...dailyLogs];
-      if (insertAfterIndex !== undefined) {
-          newLogs.splice(insertAfterIndex + 1, 0, newLog);
-      } else {
-          newLogs.push(newLog);
-      }
       
-      newLogs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const newLogs = [...dailyLogs, newLog].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       setDailyLogs(newLogs);
+      setCustomDate('');
     }
   };
-  
-  useEffect(() => {
-    if (dailyLogs.length === 0) {
-      addDateEntry(format(new Date(), 'yyyy-MM-dd'));
-    }
-  }, [dailyLogs]);
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string | boolean) => {
     const newLogs = [...dailyLogs];
@@ -95,10 +114,10 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
     setDailyLogs(logs => logs.map(log => ({
       ...log,
       status: defaultStatus,
-      checkInAM: defaultCheckInAM,
+      checkInAM: log.status === 'present' ? defaultCheckInAM : '',
       checkOutAM: '',
       checkInPM: '',
-      checkOutPM: defaultCheckOutPM,
+      checkOutPM: log.status === 'present' ? defaultCheckOutPM : '',
     })));
   };
 
@@ -109,12 +128,12 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
       return;
     }
 
-    const logsToSubmit = dailyLogs.filter(log => log.status !== 'absent' && log.date);
+    const logsToSubmit = dailyLogs.filter(log => log.date && log.status !== 'absent');
     
     const data: BulkAttendanceData = {
       clientIds: [selectedClient.id],
       staffId: parseInt(selectedStaffId, 10),
-      serviceType: selectedServiceType,
+      serviceType: 'Adult Day Care',
       location: 'Daycare Center',
       billingCode: 'T2021',
       dailyLogs: logsToSubmit.map(log => ({
@@ -126,8 +145,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
         checkOutPM: log.checkOutPM,
         notes: log.notes,
       })),
-      startDate: '',
-      endDate: '',
+      startDate: '', // Not used in this logic
+      endDate: '', // Not used in this logic
     };
     
     onSubmit(data);
@@ -146,8 +165,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
     <form onSubmit={handleSubmit}>
       <div className="space-y-4 p-1">
           {/* Top selection fields */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-lg bg-muted/50">
-             <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end p-4 border rounded-lg bg-muted/50">
+             <div>
                 <Label>Client</Label>
                 <Select onValueChange={(val) => setSelectedClient(clients.find(c => String(c.id) === val) || null)}>
                     <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
@@ -169,9 +188,26 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
 
           {selectedClient && (
             <>
-              {/* Default settings bar */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-3 border rounded-lg">
-                <div className="col-span-1 md:col-span-3 grid grid-cols-3 gap-2">
+              {/* Month/Year and Default settings bar */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-end p-3 border rounded-lg">
+                <div className="flex gap-2">
+                    <div>
+                        <Label className="text-xs">Month</Label>
+                        <Select value={String(selectedMonth)} onValueChange={val => setSelectedMonth(parseInt(val))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{months.map(m => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label className="text-xs">Year</Label>
+                        <Select value={String(selectedYear)} onValueChange={val => setSelectedYear(parseInt(val))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
                   <div>
                     <Label className="text-xs">Default Status</Label>
                     <Select value={defaultStatus} onValueChange={val => setDefaultStatus(val as AttendanceStatus)}>
@@ -188,17 +224,18 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
                     <Input type="time" value={defaultCheckOutPM} onChange={e => setDefaultCheckOutPM(e.target.value)} />
                   </div>
                 </div>
-                <Button type="button" onClick={applyDefaults} className="w-full">Apply to All</Button>
+                <Button type="button" onClick={applyDefaults} className="w-full lg:col-span-2">Apply Defaults to All</Button>
               </div>
 
               {/* Timesheet Grid */}
               <ScrollArea className="h-[40vh] w-full border rounded-lg">
                 <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
-                    const day = new Date(log.date + 'T12:00:00'); // Use noon to avoid timezone shifts
+                    const dayName = format(new Date(log.date + 'T12:00:00'), 'EEE'); // Use noon to avoid timezone shifts
                     return (
                       <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
+                            <span className="w-8 text-sm text-muted-foreground">{dayName}</span>
                             <Input type="date" value={log.date} onChange={e => handleDailyLogChange(index, 'date', e.target.value)} className="w-full" />
                           </div>
                           <div className="col-span-6 sm:col-span-2">
@@ -216,11 +253,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
                           <div className="col-span-12 sm:col-span-3">
                             <Input placeholder="Notes..." value={log.notes} onChange={e => handleDailyLogChange(index, 'notes', e.target.value)} />
                           </div>
-                          <div className="col-span-12 sm:col-span-1 flex items-center justify-end gap-1">
-                               <Button type="button" variant="ghost" size="icon" onClick={() => addDateEntry(format(addDays(day, 1), 'yyyy-MM-dd'), index)}>
-                                  <PlusCircle className="w-4 h-4" />
-                               </Button>
-                               <Button type="button" variant="ghost" size="icon" onClick={() => removeDateEntry(index)} disabled={dailyLogs.length <= 1}>
+                          <div className="col-span-12 sm:col-span-1 flex items-center justify-end">
+                               <Button type="button" variant="ghost" size="icon" onClick={() => removeDateEntry(index)}>
                                   <X className="w-4 h-4 text-destructive" />
                                </Button>
                           </div>
@@ -228,12 +262,23 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
                     )
                   }) : (
                      <div className="text-center py-10 text-muted-foreground">
-                        <p>No dates added yet.</p>
-                        <p className="text-sm">Click the plus button to add a service date.</p>
+                        <p>No dates generated for this month.</p>
                     </div>
                   )}
                 </div>
               </ScrollArea>
+              
+               <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/20">
+                    <Input 
+                        type="date" 
+                        value={customDate} 
+                        onChange={e => setCustomDate(e.target.value)} 
+                        className="w-full"
+                    />
+                    <Button type="button" variant="outline" onClick={addCustomDate} disabled={!customDate}>
+                       <PlusCircle className="mr-2 h-4 w-4" /> Add Custom Date
+                    </Button>
+                </div>
             </>
           )}
 
