@@ -32,6 +32,31 @@ export default function AttendancePage() {
     } as DateRange | undefined,
   });
 
+  const getStatusBadgeVariant = (status: EnrichedAttendance['status']) => {
+    switch (status) {
+      case 'present':
+        return 'default' as const;
+      case 'absent':
+        return 'destructive' as const;
+      case 'excused':
+      default:
+        return 'secondary' as const;
+    }
+  };
+
+  const getAdminStatusBadgeVariant = (status: EnrichedAttendance['adminStatus']) => {
+    switch (status) {
+      case 'Approved':
+        return 'default' as const;
+      case 'Rejected':
+        return 'destructive' as const;
+      case 'Pending':
+      default:
+        return 'secondary' as const;
+    }
+  };
+
+
   const columns: ColumnDef<EnrichedAttendance>[] = [
     {
       accessorKey: 'id',
@@ -82,12 +107,12 @@ export default function AttendancePage() {
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ status }) => <Badge variant={status === 'present' ? 'default' : status === 'absent' ? 'destructive' : 'secondary'} className={cn(status === 'present' && 'bg-green-500')}>{status}</Badge>,
+      cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)} className={cn(status === 'present' && 'bg-green-500')}>{status}</Badge>,
     },
     {
       accessorKey: 'adminStatus',
       header: 'Admin Status',
-      cell: ({ adminStatus }) => <Badge variant={adminStatus === 'Approved' ? 'default' : adminStatus === 'Rejected' ? 'destructive' : 'secondary'} className={cn(adminStatus === 'Approved' && 'bg-green-500')}>{adminStatus}</Badge>,
+      cell: ({ adminStatus }) => <Badge variant={getAdminStatusBadgeVariant(adminStatus)} className={cn(adminStatus === 'Approved' && 'bg-green-500')}>{adminStatus}</Badge>,
     },
     {
         accessorKey: 'review',

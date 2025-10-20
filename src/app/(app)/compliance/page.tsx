@@ -7,6 +7,20 @@ import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import type { EnrichedCompliance } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+const getStatusBadgeVariant = (status: EnrichedCompliance['status']) => {
+  switch (status) {
+    case 'Current':
+      return 'default' as const;
+    case 'Expired':
+      return 'destructive' as const;
+    case 'Expiring Soon':
+    default:
+      return 'secondary' as const;
+  }
+};
+
 
 const columns: ColumnDef<EnrichedCompliance>[] = [
   {
@@ -42,7 +56,7 @@ const columns: ColumnDef<EnrichedCompliance>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'Current' ? 'badge-success' : row.status === 'Expired' ? 'badge-danger' : 'badge-warning'}`}>{row.status}</span>,
+    cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',

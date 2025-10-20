@@ -47,7 +47,7 @@ export default function ClientsPage() {
       
        <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row gap-2 pt-4">
+          <div className="flex flex-col md:flex-row gap-2">
               <Input 
                 placeholder="Search clients..." 
                 value={searchTerm}

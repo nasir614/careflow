@@ -1,10 +1,8 @@
 'use client';
 
 import { useCareFlow } from '@/contexts/CareFlowContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ClientForm from './client-form';
-import ViewClientModal from './view-client-modal';
 import DeleteModal from './delete-modal';
 import { Schedule, Client, AnyData } from '@/lib/types';
 import ScheduleForm from './schedule-form';
@@ -53,9 +51,6 @@ export function ModalManager() {
       case 'delete':
         return <DeleteModal onConfirm={() => handleCRUD('delete', activeModule, {}, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
       case 'view':
-        if (activeModule === 'clients' && selectedItem) {
-          return <ViewClientModal client={selectedItem as Client} />;
-        }
         if (selectedItem) {
            return <GenericViewModal item={selectedItem} module={activeModule} />;
         }

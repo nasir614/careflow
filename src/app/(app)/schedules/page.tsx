@@ -14,7 +14,7 @@ import { format, subMonths, addDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import type { Schedule, ServicePlan } from '@/lib/types';
+import type { Schedule, ServicePlan, EnrichedSchedule } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,18 @@ import { Badge } from '@/components/ui/badge';
 const dayAbbreviations: { [key: string]: string } = {
   monday: 'M', tuesday: 'T', wednesday: 'W', thursday: 'Th',
   friday: 'F', saturday: 'Sa', sunday: 'Su',
+};
+
+const getStatusBadgeVariant = (status: EnrichedSchedule['status']) => {
+  switch (status) {
+    case 'active':
+      return 'default' as const;
+    case 'expired':
+      return 'destructive' as const;
+    case 'pending':
+    default:
+      return 'secondary' as const;
+  }
 };
 
 const columns = (servicePlans: ServicePlan[]): ColumnDef<Schedule>[] => [
@@ -76,7 +88,7 @@ const columns = (servicePlans: ServicePlan[]): ColumnDef<Schedule>[] => [
       )
     }
   },
-  { accessorKey: 'status', header: 'Status', cell: ({ status }) => <Badge variant={status === 'active' ? 'default' : status === 'expired' ? 'destructive' : 'secondary'} className={cn(status === 'active' && 'bg-green-500')}>{status}</Badge> },
+  { accessorKey: 'status', header: 'Status', cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)} className={cn(status === 'active' && 'bg-green-500')}>{status}</Badge> },
   { accessorKey: 'actions', header: 'Actions', cell: () => null },
 ];
 

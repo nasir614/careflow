@@ -16,6 +16,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
+const getScheduleStatusBadgeVariant = (status: EnrichedSchedule['status']) => {
+  switch (status) {
+    case 'active':
+      return 'default' as const;
+    case 'expired':
+      return 'destructive' as const;
+    case 'pending':
+    default:
+      return 'secondary' as const;
+  }
+};
+
 const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   {
     accessorKey: 'id',
@@ -55,7 +67,7 @@ const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ status }) => <Badge variant={status === 'active' ? 'default' : status === 'expired' ? 'destructive' : 'secondary'} className={cn(status === 'active' && 'bg-green-500')}>{status}</Badge>,
+    cell: ({ status }) => <Badge variant={getScheduleStatusBadgeVariant(status)} className={cn(status === 'active' && 'bg-green-500')}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',
@@ -64,7 +76,7 @@ const scheduleColumns: ColumnDef<EnrichedSchedule>[] = [
   },
 ];
 
-const getCredentialStatus = (expiryDate: string | null) => {
+const getCredentialStatusInfo = (expiryDate: string | null) => {
   if (!expiryDate) return { label: 'Active', variant: 'default' as const, isSuccess: true };
   const diff = (new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
   if (diff <= 0) return { label: "Expired", variant: 'destructive' as const, isSuccess: false };
@@ -98,7 +110,7 @@ const credentialColumns: ColumnDef<EnrichedStaffCredential>[] = [
       accessorKey: 'status',
       header: 'Status',
       cell: ({ expirationDate }) => {
-        const status = getCredentialStatus(expirationDate);
+        const status = getCredentialStatusInfo(expirationDate);
         return <Badge variant={status.variant} className={cn(status.isSuccess && 'bg-green-500')}>{status.label}</Badge>;
       },
     },
@@ -160,7 +172,7 @@ export default function StaffPage() {
   const credentialSummary = useMemo(() => {
     if (!selectedStaff) return { active: 0, expiring: 0, expired: 0 };
     return selectedStaffCredentials.reduce((acc, cred) => {
-        const status = getCredentialStatus(cred.expirationDate).label;
+        const status = getCredentialStatusInfo(cred.expirationDate).label;
         if(status === 'Active') acc.active++;
         if(status === 'Expiring Soon') acc.expiring++;
         if(status === 'Expired') acc.expired++;
@@ -183,7 +195,7 @@ export default function StaffPage() {
 
       <Card>
         <CardHeader>
-            <div className='space-y-2 pt-4'>
+            <div className='space-y-2'>
                 <Input 
                     placeholder="Search staff..."
                     value={searchTerm}

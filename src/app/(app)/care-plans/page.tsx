@@ -8,17 +8,19 @@ import { Pagination } from '@/components/app/pagination';
 import type { EnrichedCarePlan, PlanStatus } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-const getStatusBadgeClass = (status: PlanStatus) => {
+
+const getStatusBadgeVariant = (status: PlanStatus) => {
   switch (status) {
     case 'Active':
-      return 'badge-success';
-    case 'Pending':
-      return 'badge-warning';
+      return 'default' as const;
     case 'Expired':
     case 'Inactive':
+      return 'destructive' as const;
+    case 'Pending':
     default:
-      return 'badge-danger';
+      return 'secondary' as const;
   }
 };
 
@@ -51,7 +53,7 @@ const columns: ColumnDef<EnrichedCarePlan>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
+    cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)} className={cn(status === 'Active' && 'bg-green-500')}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',

@@ -6,13 +6,25 @@ import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, X, FilePlus2 } from 'lucide-react';
 import type { EnrichedBilling } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+const getStatusBadgeVariant = (status: EnrichedBilling['status']) => {
+  switch (status) {
+    case 'Paid':
+      return 'default' as const;
+    case 'Denied':
+      return 'destructive' as const;
+    case 'Pending':
+    case 'Submitted':
+    default:
+      return 'secondary' as const;
+  }
+};
 
 const columns: ColumnDef<EnrichedBilling>[] = [
   {
@@ -43,7 +55,7 @@ const columns: ColumnDef<EnrichedBilling>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ status }) => <Badge variant={status === 'Paid' ? 'default' : status === 'Denied' ? 'destructive' : 'secondary'} className={cn(status === 'Paid' && 'bg-green-500')}>{status}</Badge>,
+    cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)} className={cn(status === 'Paid' && 'bg-green-500')}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',

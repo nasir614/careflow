@@ -7,6 +7,21 @@ import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import type { EnrichedTransportation } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+const getStatusBadgeVariant = (status: EnrichedTransportation['status']) => {
+    switch (status) {
+      case 'Completed':
+        return 'default' as const;
+      case 'Canceled':
+        return 'destructive' as const;
+      case 'In Progress':
+      case 'Scheduled':
+      default:
+        return 'secondary' as const;
+    }
+  };
 
 const columns: ColumnDef<EnrichedTransportation>[] = [
   {
@@ -42,7 +57,7 @@ const columns: ColumnDef<EnrichedTransportation>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'Completed' ? 'badge-success' : row.status === 'In Progress' ? 'badge-info' : row.status === 'Canceled' ? 'badge-danger' : 'badge-warning'}`}>{row.status}</span>,
+    cell: ({ status }) => <Badge variant={getStatusBadgeVariant(status)} className={cn(status === 'Completed' && 'bg-green-500')}>{status}</Badge>,
   },
   {
     accessorKey: 'actions',
