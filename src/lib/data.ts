@@ -1,5 +1,5 @@
 import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, StaffCredential, ServicePlan, CarePlan, Authorization } from './types';
-import { format, subDays, addDays } from 'date-fns';
+import { format, subDays, addDays, getMonth, getYear } from 'date-fns';
 
 const today = new Date();
 const yesterday = subDays(today, 1);
@@ -192,6 +192,48 @@ export const initialClients: Client[] = [
       timeOutAM: '12:00',
       status: 'active',
       createdAt: '2023-12-20'
+    },
+     {
+      id: 405,
+      clientId: 102,
+      staffId: 204,
+      servicePlanId: 805,
+      serviceType: 'Respite Care',
+      serviceCode: 'T1005',
+      frequency: 'Bi-Weekly',
+      totalUnits: 32,
+      usedUnits: 16,
+      hoursPerDay: 8,
+      startDate: format(new Date(getYear(today), getMonth(today), 1), 'yyyy-MM-dd'),
+      endDate: format(new Date(getYear(today), getMonth(today) + 1, 0), 'yyyy-MM-dd'),
+      days: ['Saturday', 'Sunday'],
+      timeInAM: '10:00',
+      timeOutAM: '14:00',
+      timeInPM: '15:00',
+      timeOutPM: '19:00',
+      status: 'pending',
+      createdAt: format(subDays(today, 5), 'yyyy-MM-dd'),
+    },
+    {
+      id: 406,
+      clientId: 103,
+      staffId: 203,
+      servicePlanId: 803,
+      serviceType: 'Day Support',
+      serviceCode: 'S5150',
+      frequency: 'Daily',
+      totalUnits: 100,
+      usedUnits: 25,
+      hoursPerDay: 5,
+      startDate: format(subDays(today, 30), 'yyyy-MM-dd'),
+      endDate: format(addDays(today, 60), 'yyyy-MM-dd'),
+      days: ['Tuesday', 'Thursday'],
+      timeInAM: '10:00',
+      timeOutAM: '12:30',
+      timeInPM: '13:30',
+      timeOutPM: '16:00',
+      status: 'active',
+      createdAt: format(subDays(today, 35), 'yyyy-MM-dd'),
     },
   ];
 
