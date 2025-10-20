@@ -14,7 +14,7 @@ import { format, subMonths, addDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import type { Schedule } from '@/lib/types';
+import type { Schedule, ServicePlan } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,12 +37,20 @@ const dayAbbreviations: { [key: string]: string } = {
   friday: 'F', saturday: 'Sa', sunday: 'Su',
 };
 
-const columns: ColumnDef<Schedule>[] = [
+const columns = (servicePlans: ServicePlan[]): ColumnDef<Schedule>[] => [
   { accessorKey: 'expand', header: '', cell: () => null },
   { accessorKey: 'clientName', header: 'Client', cell: (row) => row.clientName },
   { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
   { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
-  { accessorKey: 'startDate', header: 'Period', cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate} → {row.endDate}</div> },
+  {
+    accessorKey: 'servicePlanId',
+    header: 'Service Plan Period',
+    cell: (row) => {
+      const plan = servicePlans.find(p => p.id === row.servicePlanId);
+      return <div className="text-xs min-w-[80px]">{plan ? `${plan.startDate} → ${plan.endDate}` : 'N/A'}</div>;
+    }
+  },
+  { accessorKey: 'startDate', header: 'Schedule Period', cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate} → {row.endDate}</div> },
   {
     accessorKey: 'days',
     header: 'Days & Time',
@@ -82,7 +90,7 @@ const columns: ColumnDef<Schedule>[] = [
 const ITEMS_PER_PAGE = 8;
 
 export default function SchedulesPage() {
-  const { schedules, openModal } = useCareFlow();
+  const { schedules, servicePlans, openModal } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState('active');
 
@@ -144,6 +152,8 @@ export default function SchedulesPage() {
       </div>
     </div>
   );
+  
+  const tableColumns = useMemo(() => columns(servicePlans), [servicePlans]);
 
   return (
     <div className="space-y-6">
@@ -207,7 +217,7 @@ export default function SchedulesPage() {
                </div>
               <TabsContent value={activeTab}>
                 <DataTable
-                  columns={columns}
+                  columns={tableColumns}
                   data={paginatedData}
                   onView={(row) => openModal('view', 'schedules', row)}
                   onEdit={(row) => openModal('edit', 'schedules', row)}
@@ -227,3 +237,5 @@ export default function SchedulesPage() {
     </div>
   );
 }
+
+    
