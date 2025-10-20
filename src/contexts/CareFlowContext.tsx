@@ -294,6 +294,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             billingCode: billingCode,
             status: log.status,
             notes: log.notes,
+            procedures: log.procedures,
+            isBillable: log.isBillable,
+            adminStatus: log.adminStatus,
             createdAt: new Date().toISOString(),
           };
 

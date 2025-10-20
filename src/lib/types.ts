@@ -64,6 +64,9 @@ export type Attendance = {
   status: 'present' | 'absent' | 'excused';
   notes: string | null;
   createdAt: string;
+  procedures?: string;
+  isBillable: boolean;
+  adminStatus: 'Pending' | 'Approved' | 'Rejected';
 };
 
 export type Compliance = {

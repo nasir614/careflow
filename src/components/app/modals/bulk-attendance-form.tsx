@@ -10,6 +10,9 @@ import { useCareFlow } from '@/contexts/CareFlowContext';
 import { format, getDaysInMonth, isValid, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface BulkAttendanceFormProps {
   onSubmit: (data: any) => void;
@@ -25,6 +28,9 @@ type DailyLog = {
   checkInPM: string;
   checkOutPM: string;
   notes: string;
+  procedures: string;
+  isBillable: boolean;
+  adminStatus: Attendance['adminStatus'];
 };
 
 export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: BulkAttendanceFormProps) {
@@ -47,6 +53,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
     checkOutAM: '12:00',
     checkInPM: '13:00',
     checkOutPM: '16:00',
+    procedures: '',
+    isBillable: true,
+    adminStatus: 'Pending' as Attendance['adminStatus'],
   });
 
   useEffect(() => {
@@ -76,6 +85,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
           checkInPM: existingLog.checkInPM || '',
           checkOutPM: existingLog.checkOutPM || '',
           notes: existingLog.notes || '',
+          procedures: existingLog.procedures || '',
+          isBillable: existingLog.isBillable,
+          adminStatus: existingLog.adminStatus,
         });
       } else {
         newLogs.push({
@@ -86,6 +98,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
           checkInPM: '',
           checkOutPM: '',
           notes: '',
+          procedures: '',
+          isBillable: true,
+          adminStatus: 'Pending',
         });
       }
     }
@@ -103,14 +118,14 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
   }, [selectedClientId, currentMonth, currentYear, attendance]);
 
 
-  const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
+  const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string | boolean) => {
     const newLogs = [...dailyLogs];
     const logDate = newLogs[index].date;
     
-    newLogs[index] = { ...newLogs[index], [field]: value };
+    (newLogs[index] as any)[field] = value;
     setDailyLogs(newLogs);
     
-    const modifiedDateKey = field === 'date' ? value : logDate;
+    const modifiedDateKey = field === 'date' ? String(value) : logDate;
     setUserModifiedDates(prev => new Set(prev).add(modifiedDateKey));
   };
 
@@ -124,6 +139,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
         date: dateString,
         status: 'present',
         checkInAM: '', checkOutAM: '', checkInPM: '', checkOutPM: '', notes: '',
+        procedures: '', isBillable: true, adminStatus: 'Pending'
     }];
     newLogs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     setDailyLogs(newLogs);
@@ -216,7 +232,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
              <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Apply Defaults to All</CardTitle>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end pt-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 items-end pt-2">
                         <Select value={defaults.status} onValueChange={v => setDefaults(p => ({...p, status: v as Attendance['status']}))}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
@@ -226,23 +242,25 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                             </SelectContent>
                         </Select>
                         <Input type="time" value={defaults.checkInAM} onChange={e => setDefaults(p => ({...p, checkInAM: e.target.value}))}/>
-                        <Input type="time" value={defaults.checkOutAM} onChange={e => setDefaults(p => ({...p, checkOutAM: e.target.value}))}/>
-                        <Input type="time" value={defaults.checkInPM} onChange={e => setDefaults(p => ({...p, checkInPM: e.target.value}))}/>
+                        <Input type="time" value={defaults.checkOutPM} onChange={e => setDefaults(p => ({...p, checkOutPM: e.target.value}))}/>
+                        <Input placeholder="Procedures" value={defaults.procedures} onChange={e => setDefaults(p => ({...p, procedures: e.target.value}))}/>
+
                         <Button type="button" onClick={applyDefaults} className="w-full">Apply</Button>
                     </div>
                 </CardHeader>
                 <CardContent className="max-h-[40vh] overflow-y-auto pr-3">
-                <div className="p-4 space-y-3">
+                <div className="p-1 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
                      const dayName = log.date && isValid(parse(log.date, 'yyyy-MM-dd', new Date())) 
                         ? format(parse(log.date, 'yyyy-MM-dd', new Date()), 'EEE') 
                         : '...';
                     return (
-                      <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
+                      <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-start pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
                               <Input type="date" value={log.date} onChange={e => handleDailyLogChange(index, 'date', e.target.value)} className="w-full"/>
-                              <span className="text-muted-foreground text-sm">{dayName}</span>
                           </div>
+                           <div className="col-span-12 sm:col-span-10 text-right text-muted-foreground text-sm">{dayName}</div>
+                           
                           <div className="col-span-6 sm:col-span-2">
                               <Select value={log.status} onValueChange={(v) => handleDailyLogChange(index, 'status', v as Attendance['status'])}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -254,21 +272,37 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                               </Select>
                           </div>
                           <div className="col-span-6 sm:col-span-2">
-                              <Input type="time" value={log.checkInAM} onChange={e => handleDailyLogChange(index, 'checkInAM', e.target.value)} disabled={log.status !== 'present'}/>
+                              <Input placeholder="Time In (AM)" type="time" value={log.checkInAM} onChange={e => handleDailyLogChange(index, 'checkInAM', e.target.value)} disabled={log.status !== 'present'}/>
                           </div>
                           <div className="col-span-6 sm:col-span-2">
-                              <Input type="time" value={log.checkOutAM} onChange={e => handleDailyLogChange(index, 'checkOutAM', e.target.value)} disabled={log.status !== 'present'}/>
+                              <Input placeholder="Time Out (AM)" type="time" value={log.checkOutAM} onChange={e => handleDailyLogChange(index, 'checkOutAM', e.target.value)} disabled={log.status !== 'present'}/>
                           </div>
                            <div className="col-span-6 sm:col-span-2">
-                              <Input type="time" value={log.checkInPM} onChange={e => handleDailyLogChange(index, 'checkInPM', e.target.value)} disabled={log.status !== 'present'}/>
+                              <Input placeholder="Time In (PM)" type="time" value={log.checkInPM} onChange={e => handleDailyLogChange(index, 'checkInPM', e.target.value)} disabled={log.status !== 'present'}/>
                           </div>
                            <div className="col-span-12 sm:col-span-2">
-                              <Input type="time" value={log.checkOutPM} onChange={e => handleDailyLogChange(index, 'checkOutPM', e.target.value)} disabled={log.status !== 'present'}/>
+                              <Input placeholder="Time Out (PM)" type="time" value={log.checkOutPM} onChange={e => handleDailyLogChange(index, 'checkOutPM', e.target.value)} disabled={log.status !== 'present'}/>
                           </div>
-                          <div className="col-span-10">
-                             <Input placeholder="Notes..." value={log.notes} onChange={e => handleDailyLogChange(index, 'notes', e.target.value)} />
+                         
+                          <div className="col-span-12 sm:col-span-6">
+                            <Textarea placeholder="Procedures..." value={log.procedures} onChange={e => handleDailyLogChange(index, 'procedures', e.target.value)} rows={1} />
                           </div>
-                          <div className="col-span-2 flex justify-end">
+                           <div className="col-span-12 sm:col-span-6">
+                             <Textarea placeholder="Notes..." value={log.notes} onChange={e => handleDailyLogChange(index, 'notes', e.target.value)} rows={1} />
+                          </div>
+                          <div className="col-span-12 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-2">
+                                <Checkbox id={`billable-${index}`} checked={log.isBillable} onCheckedChange={(c) => handleDailyLogChange(index, 'isBillable', c)} />
+                                <Label htmlFor={`billable-${index}`}>Is Billable</Label>
+                            </div>
+                             <Select value={log.adminStatus} onValueChange={(v) => handleDailyLogChange(index, 'adminStatus', v)}>
+                                <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Approved">Approved</SelectItem>
+                                    <SelectItem value="Rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <Button type="button" variant="ghost" size="icon" onClick={() => removeLog(index)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                           </div>
                       </div>

@@ -130,12 +130,15 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
                 { name: 'staffId', label: 'Staff Member', type: 'select', options: staffOptions, required: true },
                 { name: 'date', label: 'Date', type: 'date', required: true },
-                { name: 'serviceType', label: 'Service Type', type: 'select', options: serviceTypeOptions, required: true },
                 { name: 'status', label: 'Status', type: 'select', options: ['present', 'absent', 'excused'], required: true },
                 { name: 'checkInAM', label: 'Check-in (AM)', type: 'time' },
                 { name: 'checkOutAM', label: 'Check-out (AM)', type: 'time' },
                 { name: 'checkInPM', label: 'Check-in (PM)', type: 'time' },
                 { name: 'checkOutPM', label: 'Check-out (PM)', type: 'time' },
+                { name: 'billingCode', label: 'Billing Code', type: 'text' },
+                { name: 'procedures', label: 'Procedures', type: 'textarea', className: 'md:col-span-2' },
+                { name: 'isBillable', label: 'Billable', type: 'checkbox' },
+                { name: 'adminStatus', label: 'Admin Status', type: 'select', options: ['Pending', 'Approved', 'Rejected'] },
                 { name: 'notes', label: 'Notes/Reason for Absence', type: 'textarea', className: 'md:col-span-2' },
             ];
         default:
@@ -167,6 +170,8 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
        if (module === 'attendance') {
         defaults.status = 'present';
         defaults.date = new Date().toISOString().split('T')[0];
+        defaults.isBillable = true;
+        defaults.adminStatus = 'Pending';
       }
       setFormData(defaults);
     }
