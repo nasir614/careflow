@@ -49,7 +49,7 @@ export default function ViewClientModal({ client }: ViewClientModalProps) {
   const clientSchedules = schedules.filter(s => s.clientId === client.id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
        <InfoBlock title="Client Information" icon={Users}>
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InfoItem label="Full Name" value={`${client.firstName} ${client.lastName}`} />
@@ -72,18 +72,19 @@ export default function ViewClientModal({ client }: ViewClientModalProps) {
                 <InfoItem label="Notes" value={"Oversees PASSPORT services and authorizations."} />
             </div>
        </InfoBlock>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+           <InfoBlock title="Schedules" icon={Calendar}>
+              <DataTable columns={scheduleColumns} data={clientSchedules} />
+           </InfoBlock>
 
-       <InfoBlock title="Schedules" icon={Calendar}>
-          <DataTable columns={scheduleColumns} data={clientSchedules} />
-       </InfoBlock>
-
-       <InfoBlock title="Authorizations" icon={FileCheck}>
-          <p className="text-sm text-muted-foreground">Authorization tracking coming soon.</p>
-       </InfoBlock>
-       
-       <InfoBlock title="Providers" icon={Briefcase}>
-            <p className="text-sm text-muted-foreground">Provider tracking coming soon.</p>
-       </InfoBlock>
+           <InfoBlock title="Authorizations" icon={FileCheck}>
+              <p className="text-sm text-muted-foreground p-4 text-center">Authorization tracking coming soon.</p>
+           </InfoBlock>
+           
+           <InfoBlock title="Providers" icon={Briefcase}>
+                <p className="text-sm text-muted-foreground p-4 text-center">Provider tracking coming soon.</p>
+           </InfoBlock>
+        </div>
     </div>
   );
 }

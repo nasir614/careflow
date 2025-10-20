@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import ClientForm from './client-form';
 import ViewClientModal from './view-client-modal';
 import DeleteModal from './delete-modal';
-import { Schedule, Client, Staff, Attendance, Compliance, Billing, Transportation } from '@/lib/types';
+import { Schedule, Client } from '@/lib/types';
 import ScheduleForm from './schedule-form';
 import ViewScheduleModal from './view-schedule-modal';
 import GenericForm from './generic-form';
@@ -21,6 +21,7 @@ export function ModalManager() {
 
   const getSingularModuleName = (module: string) => {
     if (module === 'staffCredentials') return 'Staff Credential';
+    if (module === 'staff') return 'Staff Member';
     if (module.endsWith('s')) return module.slice(0, -1);
     return module;
   }
@@ -67,7 +68,7 @@ export function ModalManager() {
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && activeModule === 'clients') || (['add', 'edit'].includes(modalType) && activeModule === 'staffCredentials');
+  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && (activeModule === 'clients' || activeModule === 'staffCredentials'));
 
   return (
     <Dialog open={modalOpen} onOpenChange={closeModal}>

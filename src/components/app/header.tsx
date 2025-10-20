@@ -40,7 +40,7 @@ export function Header({
   const canAdd = activeModule && activeModule !== 'dashboard' && activeModule !== 'reports';
 
   return (
-    <header className="bg-transparent px-4 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-10 no-print mb-8">
+    <header className="bg-background/95 backdrop-blur-sm px-4 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-30 no-print border-b">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
                 <Menu className="w-6 h-6" />
@@ -53,25 +53,25 @@ export function Header({
                 placeholder="Search anything..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/80 border-gray-200 rounded-lg text-sm focus:bg-white focus:border-primary/50 focus:ring-primary/50"
+                className="w-full pl-10 pr-4 py-2 bg-background border-input rounded-lg text-sm focus:border-primary/50 focus:ring-primary/50"
               />
             </div>
         </div>
         <div className="flex items-center gap-2">
           {canAdd && (
-             <Button onClick={handleAddNew} className='bg-gradient-to-r from-primary to-pink-500 text-white rounded-lg shadow hover:opacity-90 transition hidden sm:flex'>
+             <Button onClick={handleAddNew} className='bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg shadow hover:opacity-90 transition hidden sm:flex'>
               <Plus className="w-4 h-4 mr-2" />
               Add New
             </Button>
           )}
            {canAdd && (
-             <Button size="icon" onClick={handleAddNew} className='bg-gradient-to-r from-primary to-pink-500 text-white rounded-full shadow hover:opacity-90 transition flex sm:hidden'>
+             <Button size="icon" onClick={handleAddNew} className='bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-full shadow hover:opacity-90 transition flex sm:hidden'>
               <Plus className="w-5 h-5" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="relative rounded-full text-gray-600 hover:bg-gray-200/50">
+          <Button variant="ghost" size="icon" className="relative rounded-full text-muted-foreground hover:bg-accent/20">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive rounded-full border-2 border-background"></span>
             <span className="sr-only">Notifications</span>
           </Button>
         </div>

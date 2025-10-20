@@ -75,7 +75,7 @@ export default function ClientsPage() {
                   onClick={() => setSelectedClient(c)}
                   className={cn(
                     "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
-                    selectedClient?.id === c.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100"
+                    selectedClient?.id === c.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
                   )}
                 >
                   <Avatar className="h-12 w-12 bg-gradient-to-br from-primary to-pink-400 text-white font-bold">
@@ -100,7 +100,7 @@ export default function ClientsPage() {
         {selectedClient ? (
             <ViewClientModal client={selectedClient} />
         ) : (
-            <div className="flex items-center justify-center h-64 bg-white rounded-2xl border border-dashed">
+            <div className="flex items-center justify-center h-64 bg-card rounded-2xl border border-dashed">
                 <p className="text-muted-foreground">Select a client to see their details.</p>
             </div>
         )}

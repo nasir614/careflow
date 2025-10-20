@@ -109,7 +109,7 @@ export default function ClientForm({ item, onSubmit, isLoading, onCancel }: Clie
         </div>
       </div>
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>Cancel</Button>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           {item ? 'Save Changes' : 'Create Client'}

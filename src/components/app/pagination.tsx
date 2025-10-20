@@ -12,15 +12,15 @@ interface PaginationProps {
 
 export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange }: PaginationProps) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+  const startIdx = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const endIdx = Math.min(startIdx + itemsPerPage - 1, totalItems);
 
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4 px-2">
       <div className="text-sm text-muted-foreground">
-        Showing {startIdx + 1} to {endIdx} of {totalItems} results
+        Showing {startIdx} to {endIdx} of {totalItems} results
       </div>
       <div className="flex items-center gap-2">
         <Button

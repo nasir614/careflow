@@ -106,7 +106,13 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const handleCRUD = (action: 'add' | 'edit' | 'delete', module: DataModule, data: any, item: AnyData | null = null) => {
     setIsLoading(true);
     setTimeout(() => { // Simulate API delay
-      const singularModule = module.endsWith('s') ? module.slice(0, -1) : module;
+      const getSingularModuleName = (moduleName: string) => {
+        if (moduleName === 'staffCredentials') return 'Staff Credential';
+        if (moduleName === 'staff') return 'Staff Member';
+        if (moduleName.endsWith('s')) return moduleName.slice(0, -1);
+        return moduleName;
+      }
+      const singularModule = getSingularModuleName(module);
       const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
 
       const findClientName = (clientId: number | string) => {

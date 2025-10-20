@@ -21,7 +21,7 @@ export default function DeleteModal({ onConfirm, onCancel, isLoading }: DeleteMo
                     <p className="text-sm text-muted-foreground">This action is permanent and cannot be undone.</p>
                 </div>
             </div>
-            <p className="text-sm">Are you sure you want to delete this item? All associated data will be removed.</p>
+            <p className="text-sm text-foreground">Are you sure you want to delete this item? All associated data will be removed.</p>
         </div>
         <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 p-4 bg-muted/50 rounded-b-lg">
             <Button className="w-full sm:w-auto" variant="outline" onClick={onCancel} disabled={isLoading}>

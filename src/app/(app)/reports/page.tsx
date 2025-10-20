@@ -2,6 +2,7 @@
 
 import { PageHeader } from '@/components/app/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart3, Download } from 'lucide-react';
 
 const reports = [
@@ -18,7 +19,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <PageHeader title="Reports" breadcrumbs={[{ name: 'Reports' }]} />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {reports.map(report => (
             <Card key={report}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -27,10 +28,10 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">Generate a comprehensive report.</p>
-                    <button className="text-sm text-primary font-medium flex items-center gap-2 hover:underline">
+                    <Button variant="link" className="p-0 text-sm text-primary font-medium flex items-center gap-2">
                         Generate Report
                         <Download className="w-4 h-4" />
-                    </button>
+                    </Button>
                 </CardContent>
             </Card>
         ))}

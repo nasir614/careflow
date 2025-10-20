@@ -13,7 +13,7 @@ export default function AppLayout({
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
-    <div className="flex h-screen bg-transparent font-sans overflow-hidden">
+    <div className="flex h-screen bg-muted/40 dark:bg-background font-sans overflow-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
@@ -21,8 +21,10 @@ export default function AppLayout({
           setSearchTerm={setSearchTerm}
           onMenuClick={() => setSidebarOpen(true)} 
         />
-        <main className="flex-1 overflow-y-auto p-6 md:p-10" id="main-content">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6" id="main-content">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
       <ModalManager />

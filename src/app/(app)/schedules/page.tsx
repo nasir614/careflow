@@ -158,11 +158,9 @@ const ITEMS_PER_PAGE = 8;
 const SERVICE_PLANS_PER_PAGE = 5;
 
 export default function SchedulesPage() {
-  const { schedules, openModal, clients, staff } = useCareFlow();
+  const { schedules, openModal } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPlansPage, setCurrentPlansPage] = useState(1);
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const { toast } = useToast();
 
   const activeSchedules = useMemo(() => schedules.filter(s => s.status !== 'expired'), [schedules]);
   const pastSchedules = useMemo(() => schedules.filter(s => s.status === 'expired'), [schedules]);

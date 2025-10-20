@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${manrope.variable}`}>
-      <body className="font-sans bg-gradient-to-br from-indigo-50 via-white to-pink-50 text-gray-900">
+      <body className="font-sans bg-background text-foreground">
         <CareFlowProvider>
           {children}
           <Toaster />

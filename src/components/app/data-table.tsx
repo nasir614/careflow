@@ -29,7 +29,7 @@ export function DataTable<T extends { id: any }>({
 }: DataTableProps<T>) {
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card">
+    <ScrollArea className="w-full whitespace-nowrap rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>

@@ -247,7 +247,7 @@ export default function AttendancePage() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 rounded-lg border p-4 mb-4">
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative md:col-span-2 lg:col-span-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />

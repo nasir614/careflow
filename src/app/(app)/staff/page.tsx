@@ -208,7 +208,7 @@ export default function StaffPage() {
                             onClick={() => setSelectedStaff(s)}
                             className={cn(
                                 "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
-                                selectedStaff?.id === s.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100"
+                                selectedStaff?.id === s.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
                             )}
                         >
                             <Avatar className="h-12 w-12">
@@ -255,7 +255,7 @@ export default function StaffPage() {
             </CardContent>
         </Card>
       ) : (
-          <div className="flex items-center justify-center h-48 bg-white rounded-2xl border border-dashed">
+          <div className="flex items-center justify-center h-48 bg-card rounded-2xl border border-dashed">
             <p className="text-muted-foreground">Select a staff member to see their details.</p>
         </div>
       )}
