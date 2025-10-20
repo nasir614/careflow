@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ViewClientModal from '@/components/app/modals/view-client-modal';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 export default function ClientsPage() {
   const { clients, openModal } = useCareFlow();
@@ -74,7 +75,7 @@ export default function ClientsPage() {
                   key={c.id} 
                   onClick={() => setSelectedClient(c)}
                   className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
+                    "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-36 shrink-0 border-2",
                     selectedClient?.id === c.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
                   )}
                 >
@@ -82,6 +83,7 @@ export default function ClientsPage() {
                     <AvatarFallback>{c.firstName[0]}{c.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <div className='text-center'>
+                    <Badge variant="secondary" className="mb-1">ID: {c.id}</Badge>
                     <div className="font-medium text-sm truncate w-full">{c.firstName} {c.lastName}</div>
                     <div className="text-xs text-muted-foreground truncate w-full">{c.email}</div>
                   </div>

@@ -226,6 +226,7 @@ export default function StaffPage() {
                                 <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div className='text-center'>
+                                <Badge variant="secondary" className="mb-1">ID: {s.id}</Badge>
                                 <div className="font-medium text-sm truncate w-full">{s.name}</div>
                                 <div className="text-xs text-muted-foreground truncate w-full">{s.role}</div>
                             </div>
