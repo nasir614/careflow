@@ -47,15 +47,15 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
     checkOutPM: '16:00',
   });
 
-  const generateMonthDays = (month: number, year: number) => {
+  useEffect(() => {
     if (!selectedClientId || !selectedStaffId || !selectedService) {
         setDailyLogs([]);
         return;
     }
-    const daysInMonth = getDaysInMonth(new Date(year, month));
+    const daysInMonth = getDaysInMonth(new Date(currentYear, currentMonth));
     const logs: DailyLog[] = [];
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
+      const date = new Date(currentYear, currentMonth, day);
       const dateString = format(date, 'yyyy-MM-dd');
       
       const existingLog = attendance.find(a => 
@@ -86,11 +86,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
       }
     }
     setDailyLogs(logs);
-  };
-
-  useEffect(() => {
-    generateMonthDays(currentMonth, currentYear);
-  }, [selectedClientId, selectedStaffId, selectedService, currentMonth, currentYear, attendance]);
+  }, [selectedClientId, selectedStaffId, selectedService, currentMonth, currentYear]);
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
     const newLogs = [...dailyLogs];
@@ -100,7 +96,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
 
   const addCustomDate = (date: Date | undefined) => {
     if (!date) return;
-    const dateString = format(date, 'yyyy-MM-dd');
+    // Adjust for timezone offset
+    const adjustedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    const dateString = format(adjustedDate, 'yyyy-MM-dd');
     if (dailyLogs.some(log => log.date === dateString)) return;
 
     const newLogs = [...dailyLogs, {
@@ -210,7 +208,9 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                 <CardContent className="max-h-[40vh] overflow-y-auto pr-3">
                 <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
-                    const dayName = isValid(new Date(log.date)) ? format(parse(log.date, 'yyyy-MM-dd', new Date()), 'EEE') : '...';
+                    const dayName = log.date && isValid(parse(log.date, 'yyyy-MM-dd', new Date())) 
+                        ? format(parse(log.date, 'yyyy-MM-dd', new Date()), 'EEE') 
+                        : '...';
                     return (
                       <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
