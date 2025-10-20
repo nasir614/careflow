@@ -175,8 +175,7 @@ export default function AttendancePage() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                  <CardTitle className="flex items-center gap-2"><ListOrdered className="w-6 h-6 text-primary" /> Attendance</CardTitle>
-                  <CardDescription className="mt-1">View, edit, or manage attendance records.</CardDescription>
+                  <p className="text-muted-foreground mt-1">View, edit, or manage attendance records.</p>
               </div>
               <Button variant="secondary" size="sm" onClick={() => openModal('add', 'attendance', { bulk: true })}>
                   <Clock className="w-4 h-4 mr-2" />

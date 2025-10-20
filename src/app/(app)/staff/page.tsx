@@ -183,7 +183,6 @@ export default function StaffPage() {
 
       <Card>
         <CardHeader>
-            <CardTitle>Staff Directory</CardTitle>
             <div className='space-y-2 pt-4'>
                 <Input 
                     placeholder="Search staff..."
