@@ -12,7 +12,8 @@ import {
   initialStaffCredentials,
   initialServicePlans,
   initialCarePlans,
-  initialAuthorizations
+  initialAuthorizations,
+  initialAttendance
 } from '@/lib/data';
 import type { 
   Client, 
@@ -27,8 +28,9 @@ import type {
   ServicePlan,
   CarePlan,
   Authorization,
+  Attendance
 } from '@/lib/types';
-import { eachDayOfInterval, format, isMatch } from 'date-fns';
+import { eachDayOfInterval, format, isMatch, parse, differenceInMinutes } from 'date-fns';
 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
@@ -45,6 +47,7 @@ interface CareFlowContextType {
   // State
   clients: Client[];
   staff: Staff[];
+  attendance: Attendance[];
   compliance: Compliance[];
   billing: Billing[];
   transportation: Transportation[];
@@ -62,6 +65,7 @@ interface CareFlowContextType {
   setServicePlans: React.Dispatch<React.SetStateAction<ServicePlan[]>>;
   setCarePlans: React.Dispatch<React.SetStateAction<CarePlan[]>>;
   setAuthorizations: React.Dispatch<React.SetStateAction<Authorization[]>>;
+  setAttendance: React.Dispatch<React.SetStateAction<Attendance[]>>;
   
   // Modal State
   modalOpen: boolean;
@@ -90,13 +94,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   // Main data states
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [staff, setStaff] = useState<Staff[]>(initialStaff);
+  const [attendance, setAttendance] = useState<Attendance[]>(initialAttendance);
   const [compliance, setCompliance] = useState<Compliance[]>(initialCompliance);
   const [billing, setBilling] = useState<Billing[]>(initialBilling);
   const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
   const [staffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
-  const [_servicePlans, setServicePlans] = useState<Omit<ServicePlan, 'status'>[]>(initialServicePlans);
-  const [_carePlans, setCarePlans] = useState<Omit<CarePlan, 'status'>[]>(initialCarePlans);
+  const [servicePlans, setServicePlans] = useState<ServicePlan[]>(initialServicePlans);
+  const [carePlans, setCarePlans] = useState<CarePlan[]>(initialCarePlans);
   const [authorizations, setAuthorizations] = useState<Authorization[]>(initialAuthorizations);
   
   // Modal states
@@ -106,34 +111,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [selectedItem, setSelectedItem] = useState<AnyData | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
-
-  const getDerivedStatus = (startDate: string, endDate: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (today < start) return 'Pending';
-    if (today > end) return 'Expired';
-    return 'Active';
-  };
-
-  const servicePlans = useMemo<ServicePlan[]>(() => {
-    return _servicePlans.map(plan => ({
-      ...plan,
-      status: getDerivedStatus(plan.startDate, plan.endDate)
-    }));
-  }, [_servicePlans]);
-
-  const carePlans = useMemo<CarePlan[]>(() => {
-    return _carePlans.map(plan => {
-      const auth = authorizations.find(a => a.clientId === plan.clientId);
-      if (auth) {
-        return { ...plan, status: auth.status };
-      }
-      return { ...plan, status: 'Inactive' }; // Default status if no auth
-    });
-  }, [_carePlans, authorizations]);
-
 
   const openModal = (type: ModalType, module: DataModule, item: AnyData | null = null) => {
     setModalType(type);
@@ -197,8 +174,83 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     }, 1000);
   };
 
+  const handleBulkAddAttendance = (data: any) => {
+    const { client, staff, serviceType, logs } = data;
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    const newAttendanceLogs: Attendance[] = [];
+    const updatedAttendanceLogs = new Map<number, Attendance>();
+
+    logs.forEach((log: any) => {
+      if (log.status !== 'present' || !log.checkInAM || !log.checkOutAM) {
+          // You might want to handle absent/excused logs differently or just skip.
+          return;
+      }
+      const calculateHours = (timeInStr: string, timeOutStr: string) => {
+        if (!timeInStr || !timeOutStr) return 0;
+        const timeIn = parse(timeInStr, 'HH:mm', new Date());
+        const timeOut = parse(timeOutStr, 'HH:mm', new Date());
+        if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
+            return differenceInMinutes(timeOut, timeIn) / 60;
+        }
+        return 0;
+      };
+
+      const totalHours = calculateHours(log.checkInAM, log.checkOutAM) + calculateHours(log.checkInPM, log.checkOutPM);
+      
+      const existingLog = attendance.find(a => 
+        a.clientId === client.id && 
+        format(new Date(a.date + 'T00:00:00'), 'yyyy-MM-dd') === log.date
+      );
+      
+      const attendanceEntry: Omit<Attendance, 'id'> = {
+        clientId: client.id,
+        clientName: `${client.firstName} ${client.lastName}`,
+        staffId: staff.id,
+        staffName: staff.name,
+        serviceType: serviceType,
+        date: log.date,
+        checkInAM: log.checkInAM,
+        checkOutAM: log.checkOutAM,
+        checkInPM: log.checkInPM,
+        checkOutPM: log.checkOutPM,
+        totalHours: totalHours,
+        location: 'Daycare Center',
+        billingCode: 'T2021', // This should be dynamic based on service
+        status: log.status,
+        notes: log.notes,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (existingLog) {
+          updatedAttendanceLogs.set(existingLog.id, { ...existingLog, ...attendanceEntry, id: existingLog.id });
+          updatedCount++;
+      } else {
+          newAttendanceLogs.push({ ...attendanceEntry, id: Date.now() + createdCount });
+          createdCount++;
+      }
+    });
+
+    setAttendance(prev => {
+        const updatedPrev = prev.map(p => updatedAttendanceLogs.has(p.id) ? updatedAttendanceLogs.get(p.id)! : p);
+        return [...updatedPrev, ...newAttendanceLogs];
+    });
+
+    toast({ title: 'Attendance Processed', description: `${createdCount} logs created, ${updatedCount} logs updated.` });
+    closeModal();
+    setIsLoading(false);
+  };
+
+
   const handleCRUD = (action: 'add' | 'edit' | 'delete', module: DataModule, data: any, item: AnyData | null = null) => {
     setIsLoading(true);
+
+    if(module === 'attendance' && (item as any)?.bulk) {
+      setTimeout(() => handleBulkAddAttendance(data), 800);
+      return;
+    }
+    
     setTimeout(() => { // Simulate API delay
       const getSingularModuleName = (moduleName: string) => {
         if (moduleName === 'staffCredentials') return 'Staff Credential';
@@ -206,6 +258,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         if (moduleName === 'servicePlans') return 'Service Plan';
         if (moduleName === 'carePlans') return 'Care Plan';
         if (moduleName === 'authorizations') return 'Authorization';
+        if (moduleName === 'attendance') return 'Attendance Log';
         if (moduleName.endsWith('s')) return moduleName.slice(0, -1);
         return moduleName;
       }
@@ -224,35 +277,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
-        const { status, ...restOfData } = data;
-        newItem = { id: Date.now(), createdAt: new Date().toISOString(), ...restOfData };
-        
         switch(module) {
           case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
           case 'staff': setStaff(prev => [...prev, newItem]); break;
           case 'schedules': setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); break;
           case 'staffCredentials': setStaffCredentials(prev => [...prev, newItem]); break;
-          case 'servicePlans':
-              newItem = { ...newItem, clientName: findClientName(newItem.clientId) };
-              setServicePlans(prev => [...prev, newItem]);
-              break;
-          case 'carePlans':
-              newItem = { ...newItem, clientName: findClientName(newItem.clientId), assignedStaff: findStaffName(newItem.assignedStaffId) };
-              setCarePlans(prev => [...prev, newItem]);
-              break;
-          case 'authorizations':
-              const servicePlan = servicePlans.find(p => String(p.id) === String(newItem.servicePlanId));
-              newItem = { 
-                  ...newItem,
-                  clientName: findClientName(newItem.clientId),
-                  servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
-                  serviceType: servicePlan ? servicePlan.type : 'Unknown',
-                  billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
-                  usedHours: 0,
-                  status: getDerivedStatus(newItem.startDate, newItem.endDate),
-              };
-              setAuthorizations(prev => [...prev, newItem]);
-              break;
+          case 'servicePlans': setServicePlans(prev => [...prev, newItem]); break;
+          case 'carePlans': setCarePlans(prev => [...prev, newItem]); break;
+          case 'authorizations': setAuthorizations(prev => [...prev, newItem]); break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
             newItem = {
@@ -271,36 +303,39 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             };
             setTransportation(prev => [...prev, newItem]); 
             break;
+          case 'attendance':
+             const calculateHours = (timeInStr: string, timeOutStr: string) => {
+                if (!timeInStr || !timeOutStr) return 0;
+                const timeIn = parse(timeInStr, 'HH:mm', new Date());
+                const timeOut = parse(timeOutStr, 'HH:mm', new Date());
+                if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
+                    return differenceInMinutes(timeOut, timeIn) / 60;
+                }
+                return 0;
+             };
+             const totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
+             newItem = {
+                ...newItem,
+                clientName: findClientName(data.clientId),
+                staffName: findStaffName(data.staffId),
+                totalHours: totalHours,
+                billingCode: 'T2021', // Example
+                location: 'Daycare Center'
+             };
+             setAttendance(prev => [...prev, newItem]);
+             break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
-        const { status, ...restOfData } = data;
-        let updatedItem: any = { ...item, ...restOfData };
+        let updatedItem: any = { ...item, ...data };
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
           case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
           case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
-          case 'servicePlans':
-              updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId) };
-              setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem : p));
-              break;
-          case 'carePlans':
-              updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId), assignedStaff: findStaffName(updatedItem.assignedStaffId) };
-              setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem : p));
-              break;
-          case 'authorizations':
-              const servicePlan = servicePlans.find(p => String(p.id) === String(updatedItem.servicePlanId));
-              updatedItem = { 
-                  ...updatedItem,
-                  clientName: findClientName(updatedItem.clientId),
-                  servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
-                  serviceType: servicePlan ? servicePlan.type : 'Unknown',
-                  billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
-                  status: getDerivedStatus(updatedItem.startDate, updatedItem.endDate),
-              };
-              setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a));
-              break;
+          case 'servicePlans': setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p)); break;
+          case 'carePlans': setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); break;
+          case 'authorizations': setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': 
              updatedItem = {
@@ -317,6 +352,25 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
               clientId: transClient ? transClient.id : 0,
             };
             setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
+          case 'attendance':
+             const calculateHours = (timeInStr: string, timeOutStr: string) => {
+                if (!timeInStr || !timeOutStr) return 0;
+                const timeIn = parse(timeInStr, 'HH:mm', new Date());
+                const timeOut = parse(timeOutStr, 'HH:mm', new Date());
+                if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
+                    return differenceInMinutes(timeOut, timeIn) / 60;
+                }
+                return 0;
+             };
+             const totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
+             updatedItem = {
+                ...updatedItem,
+                clientName: findClientName(data.clientId),
+                staffName: findStaffName(data.staffId),
+                totalHours: totalHours,
+             };
+             setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a));
+             break;
         }
         toast({ title: "Success", description: `${capitalizedModule} updated successfully!` });
       } else if (action === 'delete' && item) {
@@ -331,6 +385,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'compliance': setCompliance(prev => prev.filter(c => c.id !== item.id)); break;
           case 'billing': setBilling(prev => prev.filter(b => b.id !== item.id)); break;
           case 'transportation': setTransportation(prev => prev.filter(t => t.id !== item.id)); break;
+          case 'attendance': setAttendance(prev => prev.filter(a => a.id !== item.id)); break;
         }
         toast({ title: "Success", description: `${capitalizedModule} deleted successfully.` });
       }
@@ -343,6 +398,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     clients,
     staff,
+    attendance,
     compliance,
     billing,
     transportation,
@@ -353,10 +409,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     authorizations,
     setClients,
     setStaff,
+    setAttendance,
     setSchedules,
     setStaffCredentials,
-    setServicePlans: setServicePlans as any, // internal state is different
-    setCarePlans: setCarePlans as any, // internal state is different
+    setServicePlans,
+    setCarePlans,
     setAuthorizations,
     modalOpen,
     modalType,

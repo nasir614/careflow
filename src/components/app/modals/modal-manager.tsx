@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import ClientForm from './client-form';
 import ViewClientModal from './view-client-modal';
 import DeleteModal from './delete-modal';
-import { Schedule, Client } from '@/lib/types';
+import { Schedule, Client, AnyData } from '@/lib/types';
 import ScheduleForm from './schedule-form';
 import ViewScheduleModal from './view-schedule-modal';
 import GenericForm from './generic-form';
 import GenericViewModal from './generic-view-modal';
+import BulkAttendanceForm from './bulk-attendance-form';
 
 export function ModalManager() {
   const { modalOpen, closeModal, modalType, activeModule, selectedItem, handleCRUD, isLoading } = useCareFlow();
@@ -25,6 +26,7 @@ export function ModalManager() {
     if (module === 'servicePlans') return 'Service Plan';
     if (module === 'carePlans') return 'Care Plan';
     if (module === 'authorizations') return 'Authorization';
+    if (module === 'attendance') return 'Attendance';
     if (module.endsWith('s')) return module.slice(0, -1);
     return module;
   }
@@ -33,6 +35,7 @@ export function ModalManager() {
   const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
 
   const getTitle = () => {
+    if ((selectedItem as AnyData & { bulk?: boolean })?.bulk) return 'Bulk Add/Update Attendance';
     switch(modalType) {
         case 'add': return `Add New ${capitalizedModule}`;
         case 'edit': return `Edit ${capitalizedModule}`;
@@ -43,6 +46,10 @@ export function ModalManager() {
   }
 
   const renderContent = () => {
+    if ((selectedItem as AnyData & { bulk?: boolean })?.bulk && activeModule === 'attendance') {
+      return <BulkAttendanceForm onSubmit={(data) => handleCRUD('add', 'attendance', data, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
+    }
+
     switch (modalType) {
       case 'delete':
         return <DeleteModal onConfirm={() => handleCRUD('delete', activeModule, {}, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
@@ -71,7 +78,9 @@ export function ModalManager() {
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations'].includes(activeModule));
+  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || 
+    (['add', 'edit'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations', 'attendance'].includes(activeModule)) ||
+    (selectedItem as AnyData & { bulk?: boolean })?.bulk;
 
   return (
     <Dialog open={modalOpen} onOpenChange={closeModal}>

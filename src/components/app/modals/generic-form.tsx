@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Loader2, Save } from 'lucide-react';
-import type { DataModule, AnyData, PlanStatus } from '@/lib/types';
+import type { DataModule, AnyData, PlanStatus, Attendance } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 
 interface GenericFormProps {
@@ -126,6 +126,19 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'route', label: 'Route', type: 'text', required: true },
                 { name: 'status', label: 'Status', type: 'select', options: ['Scheduled', 'In Progress', 'Completed', 'Canceled'], required: true }
             ];
+        case 'attendance':
+             return [
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
+                { name: 'staffId', label: 'Staff Member', type: 'select', options: staffOptions, required: true },
+                { name: 'date', label: 'Date', type: 'date', required: true },
+                { name: 'serviceType', label: 'Service Type', type: 'select', options: serviceTypeOptions, required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['present', 'absent', 'excused'], required: true },
+                { name: 'checkInAM', label: 'Check-in (AM)', type: 'time' },
+                { name: 'checkOutAM', label: 'Check-out (AM)', type: 'time' },
+                { name: 'checkInPM', label: 'Check-in (PM)', type: 'time' },
+                { name: 'checkOutPM', label: 'Check-out (PM)', type: 'time' },
+                { name: 'notes', label: 'Notes/Reason for Absence', type: 'textarea', className: 'md:col-span-2' },
+            ];
         default:
             return [];
     }
@@ -157,6 +170,10 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       const defaults: Partial<AnyData> = {};
       if (module === 'staffCredentials') {
           defaults.isCritical = false;
+      }
+       if (module === 'attendance') {
+        defaults.status = 'present';
+        defaults.date = new Date().toISOString().split('T')[0];
       }
       setFormData(defaults);
     }
@@ -254,6 +271,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     if (module === 'servicePlans') return 'Service Plan';
     if (module === 'carePlans') return 'Care Plan';
     if (module === 'authorizations') return 'Authorization';
+    if (module === 'attendance') return 'Attendance Log';
     if (module.endsWith('s')) return module.slice(0, -1);
     return module;
   }

@@ -51,6 +51,26 @@ export type StaffCredential = {
   actionTaken: string | null;
 };
 
+export type Attendance = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  staffId: number;
+  staffName: string;
+  serviceType: string;
+  date: string;
+  checkInAM: string | null;
+  checkOutAM: string | null;
+  checkInPM: string | null;
+  checkOutPM: string | null;
+  totalHours: number;
+  location: string;
+  billingCode: string;
+  status: 'present' | 'absent' | 'excused';
+  notes: string | null;
+  createdAt: string;
+};
+
 export type Compliance = {
   id: number;
   client: string;
@@ -154,6 +174,6 @@ export type Authorization = {
   notes?: string;
 };
 
-export type DataModule = 'clients' | 'staff' | 'schedules' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations';
+export type DataModule = 'clients' | 'staff' | 'schedules' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations' | 'attendance';
 
-export type AnyData = Client | Staff | Schedule | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization;
+export type AnyData = Client | Staff | Schedule | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization | Attendance;
