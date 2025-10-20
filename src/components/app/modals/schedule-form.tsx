@@ -39,7 +39,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
     const isClient = name === 'clientName';
     const isStaff = name === 'staffName';
     
-    let updatedData = { ...formData, [name]: value };
+    let updatedData: Partial<Schedule> = { ...formData, [name]: value };
 
     if (isClient) {
         const client = clients.find(c => `${c.firstName} ${c.lastName}` === value);
@@ -86,7 +86,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
                   {staff.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-               <Button type="button" size="sm" variant="ghost" className="absolute -right-1 top-6 text-primary hover:text-primary" onClick={() => openModal('suggest-caregiver', 'schedules')}>
+               <Button type="button" size="sm" variant="ghost" className="absolute -right-1 top-6 text-primary hover:text-primary" onClick={() => openModal('suggest-caregiver', 'schedules', formData)}>
                 <Bot className="w-4 h-4 mr-1" /> Suggest
               </Button>
             </div>
@@ -149,7 +149,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
             <Select value={formData.status || ""} onValueChange={(value) => handleSelectChange('status', value as 'active' | 'expired' | 'pending')} required>
                 <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
                 <SelectContent>
-                    {['active', 'expired', 'pending'].map(s => <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}
+                    {['active', 'pending', 'expired'].map(s => <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}
                 </SelectContent>
             </Select>
         </div>
