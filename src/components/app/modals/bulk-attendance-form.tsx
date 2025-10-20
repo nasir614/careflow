@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Save, PlusCircle, X } from 'lucide-react';
 import type { BulkAttendanceData, AttendanceStatus, Client } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
-import { format, getDaysInMonth, setMonth, setYear, isValid, addDays } from 'date-fns';
+import { format, getDaysInMonth, setMonth, setYear, isValid, parseISO } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DailyLog {
@@ -232,7 +232,8 @@ export default function BulkAttendanceForm({ onSubmit, onCancel, isLoading }: {
               <ScrollArea className="h-[40vh] w-full border rounded-lg">
                 <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
-                    const dayName = format(new Date(log.date + 'T12:00:00'), 'EEE'); // Use noon to avoid timezone shifts
+                    const d = parseISO(log.date);
+                    const dayName = isValid(d) ? format(d, 'EEE') : '---';
                     return (
                       <div key={index} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
                           <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
