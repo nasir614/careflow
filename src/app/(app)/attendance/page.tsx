@@ -9,9 +9,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, X, History, Search } from 'lucide-react';
-import type { Attendance } from '@/lib/types';
+import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+
+const getStatusInfo = (status: AttendanceStatus) => {
+  switch (status) {
+    case 'present':
+      return { text: 'Present', className: 'badge-success' };
+    case 'excused':
+      return { text: 'Excused', className: 'badge-warning' };
+    case 'absent':
+       return { text: 'Absent', className: 'badge-danger' };
+    case 'absent_hospital':
+       return { text: 'Hospitalized', className: 'badge-danger' };
+    case 'absent_travel':
+       return { text: 'Travel', className: 'badge-danger' };
+    case 'absent_personal':
+       return { text: 'Personal', className: 'badge-danger' };
+    default:
+      return { text: status, className: 'badge-info' };
+  }
+};
+
 
 const columns: ColumnDef<Attendance>[] = [
   {
@@ -57,7 +78,10 @@ const columns: ColumnDef<Attendance>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'present' ? 'badge-success' : row.status === 'excused' ? 'badge-warning' : 'badge-danger'}`}>{row.status}</span>,
+    cell: (row) => {
+      const { text, className } = getStatusInfo(row.status);
+      return <span className={cn('badge', className)}>{text}</span>;
+    },
   },
   {
     accessorKey: 'actions',
@@ -87,7 +111,7 @@ const historicalColumns: ColumnDef<Attendance>[] = [
     header: 'Details',
     cell: (row) => (
       <div className='text-xs'>
-        <div>Status: <span className='font-medium'>{row.status}</span></div>
+        <div>Status: <span className='font-medium'>{getStatusInfo(row.status).text}</span></div>
         {row.notes && <div>Notes: <span className='italic'>{row.notes}</span></div>}
       </div>
     ),

@@ -51,6 +51,8 @@ export type StaffCredential = {
   actionTaken: string | null;
 };
 
+export type AttendanceStatus = 'present' | 'absent' | 'excused' | 'absent_hospital' | 'absent_travel' | 'absent_personal';
+
 export type Attendance = {
   id: number;
   clientId: number;
@@ -66,7 +68,7 @@ export type Attendance = {
   totalHours: number;
   location: string;
   billingCode: string;
-  status: 'present' | 'absent' | 'excused';
+  status: AttendanceStatus;
   notes: string;
   createdAt: string;
 };

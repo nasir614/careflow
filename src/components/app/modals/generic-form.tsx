@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Loader2, Save } from 'lucide-react';
-import type { DataModule, AnyData } from '@/lib/types';
+import type { DataModule, AnyData, AttendanceStatus } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 
 interface GenericFormProps {
@@ -34,6 +34,15 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
     const staffOptions = staff.map(s => ({ value: s.id, label: s.name }));
     const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
+
+    const attendanceStatusOptions: {value: AttendanceStatus, label: string}[] = [
+        { value: 'present', label: 'Present' },
+        { value: 'excused', label: 'Excused' },
+        { value: 'absent', label: 'Absent (General)' },
+        { value: 'absent_hospital', label: 'Absent (Hospital)' },
+        { value: 'absent_travel', label: 'Absent (Travel)' },
+        { value: 'absent_personal', label: 'Absent (Personal)' },
+    ];
 
     switch (module) {
         case 'staffCredentials':
@@ -74,7 +83,7 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
                 { name: 'checkOutAM', label: 'Check Out (AM)', type: 'time' },
                 { name: 'checkInPM', label: 'Check In (PM)', type: 'time' },
                 { name: 'checkOutPM', label: 'Check Out (PM)', type: 'time' },
-                { name: 'status', label: 'Status', type: 'select', options: ['present', 'absent', 'excused'], required: true },
+                { name: 'status', label: 'Status', type: 'select', options: attendanceStatusOptions, required: true },
                 { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' }
             ];
         case 'compliance':
@@ -130,6 +139,9 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       const defaults: Partial<AnyData> = {};
       if (module === 'staffCredentials') {
           defaults.isCritical = false;
+      }
+      if (module === 'attendance') {
+        defaults.status = 'present';
       }
       setFormData(defaults);
     }
