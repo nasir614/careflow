@@ -21,7 +21,7 @@ export default function AppLayout({
           setSearchTerm={setSearchTerm}
           onMenuClick={() => setSidebarOpen(true)} 
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6" id="main-content">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6" id="main-content">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

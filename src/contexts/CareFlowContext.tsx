@@ -2,8 +2,34 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { initialClients, initialStaff, initialAttendance, initialCompliance, initialBilling, initialTransportation, initialSchedules, initialStaffCredentials } from '@/lib/data';
-import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, DataModule, AnyData, StaffCredential } from '@/lib/types';
+import { 
+  initialClients, 
+  initialStaff, 
+  initialAttendance, 
+  initialCompliance, 
+  initialBilling, 
+  initialTransportation, 
+  initialSchedules, 
+  initialStaffCredentials,
+  initialServicePlans,
+  initialCarePlans,
+  initialAuthorizations
+} from '@/lib/data';
+import type { 
+  Client, 
+  Staff, 
+  Attendance, 
+  Compliance, 
+  Billing, 
+  Transportation, 
+  Schedule, 
+  DataModule, 
+  AnyData, 
+  StaffCredential,
+  ServicePlan,
+  CarePlan,
+  Authorization
+} from '@/lib/types';
 
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
@@ -26,12 +52,18 @@ interface CareFlowContextType {
   transportation: Transportation[];
   schedules: Schedule[];
   staffCredentials: StaffCredential[];
+  servicePlans: ServicePlan[];
+  carePlans: CarePlan[];
+  authorizations: Authorization[];
   
   // Handlers
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<Schedule[]>>;
   setStaffCredentials: React.Dispatch<React.SetStateAction<StaffCredential[]>>;
+  setServicePlans: React.Dispatch<React.SetStateAction<ServicePlan[]>>;
+  setCarePlans: React.Dispatch<React.SetStateAction<CarePlan[]>>;
+  setAuthorizations: React.Dispatch<React.SetStateAction<Authorization[]>>;
   
   // Modal State
   modalOpen: boolean;
@@ -89,6 +121,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   const [transportation, setTransportation] = useState<Transportation[]>(initialTransportation);
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
   const [staffCredentials, setStaffCredentials] = useState<StaffCredential[]>(initialStaffCredentials);
+  const [servicePlans, setServicePlans] = useState<ServicePlan[]>(initialServicePlans);
+  const [carePlans, setCarePlans] = useState<CarePlan[]>(initialCarePlans);
+  const [authorizations, setAuthorizations] = useState<Authorization[]>(initialAuthorizations);
   
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -196,6 +231,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       const getSingularModuleName = (moduleName: string) => {
         if (moduleName === 'staffCredentials') return 'Staff Credential';
         if (moduleName === 'staff') return 'Staff Member';
+        if (moduleName === 'servicePlans') return 'Service Plan';
+        if (moduleName === 'carePlans') return 'Care Plan';
+        if (moduleName === 'authorizations') return 'Authorization';
         if (moduleName.endsWith('s')) return moduleName.slice(0, -1);
         return moduleName;
       }
@@ -205,23 +243,44 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       const findClientName = (clientId: number | string) => {
         const client = clients.find(c => String(c.id) === String(clientId));
         return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
-      }
+      };
+      
+      const findStaffName = (staffId: number | string) => {
+        const staffMember = staff.find(s => String(s.id) === String(staffId));
+        return staffMember ? staffMember.name : 'Unknown Staff';
+      };
+
+      const findServicePlanName = (planId: number | string) => {
+          const plan = servicePlans.find(p => String(p.id) === String(planId));
+          return plan ? plan.planName : 'Unknown Plan';
+      };
 
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         switch(module) {
-          case 'clients': 
-            setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); 
-            break;
-          case 'staff': 
-            setStaff(prev => [...prev, newItem]); 
-            break;
-          case 'schedules': 
-            setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); 
-            break;
-          case 'staffCredentials': 
-            setStaffCredentials(prev => [...prev, newItem]); 
-            break;
+          case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
+          case 'staff': setStaff(prev => [...prev, newItem]); break;
+          case 'schedules': setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); break;
+          case 'staffCredentials': setStaffCredentials(prev => [...prev, newItem]); break;
+          case 'servicePlans':
+              newItem = { ...newItem, clientName: findClientName(newItem.clientId) };
+              setServicePlans(prev => [...prev, newItem]);
+              break;
+          case 'carePlans':
+              newItem = { ...newItem, clientName: findClientName(newItem.clientId), assignedStaff: findStaffName(newItem.assignedStaffId) };
+              setCarePlans(prev => [...prev, newItem]);
+              break;
+          case 'authorizations':
+              const servicePlan = servicePlans.find(p => String(p.id) === String(newItem.servicePlanId));
+              newItem = { 
+                  ...newItem,
+                  clientName: findClientName(newItem.clientId),
+                  servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
+                  serviceType: servicePlan ? servicePlan.type : 'Unknown',
+                  billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
+              };
+              setAuthorizations(prev => [...prev, newItem]);
+              break;
           case 'attendance': 
             const client = clients.find(c => String(c.id) === String(newItem.clientId));
             const staffMember = staff.find(s => String(s.id) === String(newItem.staffId));
@@ -260,6 +319,25 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
           case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
           case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
+          case 'servicePlans':
+              updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId) };
+              setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p));
+              break;
+          case 'carePlans':
+              updatedItem = { ...updatedItem, clientName: findClientName(updatedItem.clientId), assignedStaff: findStaffName(updatedItem.assignedStaffId) };
+              setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p));
+              break;
+          case 'authorizations':
+              const servicePlan = servicePlans.find(p => String(p.id) === String(updatedItem.servicePlanId));
+              updatedItem = { 
+                  ...updatedItem,
+                  clientName: findClientName(updatedItem.clientId),
+                  servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
+                  serviceType: servicePlan ? servicePlan.type : 'Unknown',
+                  billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
+              };
+              setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a));
+              break;
           case 'attendance': 
             const client = clients.find(c => String(c.id) === String(updatedItem.clientId));
             const staffMember = staff.find(s => String(s.id) === String(updatedItem.staffId));
@@ -295,6 +373,9 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
           case 'staff': setStaff(prev => prev.filter(s => s.id !== item.id)); break;
           case 'schedules': setSchedules(prev => prev.filter(s => s.id !== item.id)); break;
           case 'staffCredentials': setStaffCredentials(prev => prev.filter(c => c.id !== item.id)); break;
+          case 'servicePlans': setServicePlans(prev => prev.filter(p => p.id !== item.id)); break;
+          case 'carePlans': setCarePlans(prev => prev.filter(p => p.id !== item.id)); break;
+          case 'authorizations': setAuthorizations(prev => prev.filter(a => a.id !== item.id)); break;
           case 'attendance': setAttendance(prev => prev.filter(a => a.id !== item.id)); break;
           case 'compliance': setCompliance(prev => prev.filter(c => c.id !== item.id)); break;
           case 'billing': setBilling(prev => prev.filter(b => b.id !== item.id)); break;
@@ -317,10 +398,16 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     transportation,
     schedules,
     staffCredentials,
+    servicePlans,
+    carePlans,
+    authorizations,
     setClients,
     setStaff,
     setSchedules,
     setStaffCredentials,
+    setServicePlans,
+    setCarePlans,
+    setAuthorizations,
     modalOpen,
     modalType,
     activeModule,

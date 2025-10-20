@@ -7,18 +7,17 @@ import {
   Users,
   Calendar,
   ClipboardList,
-  FileText,
   Bus,
   ShieldCheck,
   Receipt,
   Settings,
-  Building,
   BarChart3,
   UserCog,
-  AlertTriangle,
-  ClipboardCheck,
-  GraduationCap,
-  X
+  X,
+  FileHeart,
+  UserCheck,
+  FileCheck2,
+  HeartHandshake
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -39,8 +38,16 @@ const navGroups = [
     items: [
       { name: 'Clients', href: '/clients', icon: Users },
       { name: 'Schedules', href: '/schedules', icon: Calendar },
-      { name: 'Attendance', href: '/attendance', icon: ClipboardCheck },
+      { name: 'Attendance', href: '/attendance', icon: UserCheck },
       { name: 'Transportation', href: '/transportation', icon: Bus },
+    ],
+  },
+  {
+    title: 'Service Management',
+    items: [
+      { name: 'Service Plans', href: '/service-plans', icon: FileHeart },
+      { name: 'Care Plans', href: '/care-plans', icon: HeartHandshake },
+      { name: 'Authorizations', href: '/authorizations', icon: FileCheck2 },
     ],
   },
   {
@@ -80,8 +87,8 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     return (
         <>
             <div className="flex items-center p-4 border-b h-16">
-                <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                    <ClipboardCheck className="w-5 h-5 text-white" />
+                <div className="h-8 w-8 bg-gradient-to-br from-rose-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <ClipboardList className="w-5 h-5 text-white" />
                 </div>
                 <h2 className="ml-3 text-xl font-bold font-display text-foreground">
                 CareFlow
@@ -118,14 +125,14 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (op
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetContent 
               side="left" 
-              className="md:hidden w-72 bg-background p-0 m-0 border-r h-full flex flex-col"
+              className="lg:hidden w-72 bg-card p-0 m-0 border-r h-full flex flex-col"
           >
               <SidebarContent onLinkClick={() => setIsOpen(false)} />
           </SheetContent>
       </Sheet>
       
       {/* Desktop Sidebar */}
-      <aside className="w-64 bg-background border-r flex-col no-print hidden md:flex">
+      <aside className="w-64 bg-card border-r flex-col no-print hidden lg:flex">
         <SidebarContent />
       </aside>
     </>

@@ -29,11 +29,12 @@ type FieldConfig = {
     className?: string;
 }
 
-const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): FieldConfig[] => {
+const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], servicePlans: any[]): FieldConfig[] => {
     const clientOptions = clients.map(c => ({ value: c.id, label: `${c.firstName} ${c.lastName}` }));
     const staffOptions = staff.map(s => ({ value: s.id, label: s.name }));
     const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
+    const servicePlanOptions = servicePlans.map(p => ({ value: p.id, label: p.planName }));
 
     const attendanceStatusOptions: {value: AttendanceStatus, label: string}[] = [
         { value: 'present', label: 'Present' },
@@ -45,6 +46,30 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
     ];
 
     switch (module) {
+        case 'servicePlans':
+            return [
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
+                { name: 'planName', label: 'Plan Name', type: 'text', required: true },
+                { name: 'type', label: 'Type', type: 'select', options: ['Medical', 'Personal Care', 'Social'], required: true },
+                { name: 'billingCode', label: 'Billing Code', type: 'text', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive', 'Pending'], required: true },
+            ];
+        case 'carePlans':
+            return [
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
+                { name: 'planName', label: 'Plan Name', type: 'text', required: true },
+                { name: 'assignedStaffId', label: 'Assigned Staff', type: 'select', options: staffOptions, required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'On-Hold'], required: true },
+            ];
+        case 'authorizations':
+            return [
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
+                { name: 'servicePlanId', label: 'Service Plan', type: 'select', options: servicePlanOptions, required: true },
+                { name: 'authorizedHours', label: 'Authorized Hours', type: 'number', required: true },
+                { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+                { name: 'endDate', label: 'End Date', type: 'date', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Pending'], required: true },
+            ];
         case 'staffCredentials':
             return [
                 { name: 'staffId', label: 'Staff Member', type: 'select', options: staffOptions, required: true },
@@ -120,9 +145,9 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
 }
 
 export default function GenericForm({ module, item, onSubmit, isLoading, onCancel }: GenericFormProps) {
-  const { clients, staff } = useCareFlow();
+  const { clients, staff, servicePlans } = useCareFlow();
   const [formData, setFormData] = useState<Partial<AnyData>>({});
-  const fields = getFieldsForModule(module, clients, staff);
+  const fields = getFieldsForModule(module, clients, staff, servicePlans);
 
   useEffect(() => {
     if (item) {
@@ -133,6 +158,12 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       }
       if ('staffId' in initialData && initialData.staffId) {
           initialData.staffId = String(initialData.staffId);
+      }
+       if ('assignedStaffId' in initialData && initialData.assignedStaffId) {
+          initialData.assignedStaffId = String(initialData.assignedStaffId);
+      }
+       if ('servicePlanId' in initialData && initialData.servicePlanId) {
+          initialData.servicePlanId = String(initialData.servicePlanId);
       }
       setFormData(initialData);
     } else {
@@ -169,6 +200,12 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     }
     if ('staffId' in dataToSubmit && typeof dataToSubmit.staffId === 'string') {
         dataToSubmit.staffId = parseInt(dataToSubmit.staffId, 10);
+    }
+    if ('assignedStaffId' in dataToSubmit && typeof dataToSubmit.assignedStaffId === 'string') {
+        dataToSubmit.assignedStaffId = parseInt(dataToSubmit.assignedStaffId, 10);
+    }
+     if ('servicePlanId' in dataToSubmit && typeof dataToSubmit.servicePlanId === 'string') {
+        dataToSubmit.servicePlanId = parseInt(dataToSubmit.servicePlanId, 10);
     }
     onSubmit(dataToSubmit);
   };
@@ -227,6 +264,21 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
       </div>
     );
   };
+  
+  const getModalTitle = () => {
+    const titleAction = item ? 'Edit' : 'Create';
+    switch (module) {
+      case 'staff': return `${titleAction} Staff Member`;
+      case 'staffCredentials': return `${titleAction} Credential`;
+      case 'servicePlans': return `${titleAction} Service Plan`;
+      case 'carePlans': return `${titleAction} Care Plan`;
+      case 'authorizations': return `${titleAction} Authorization`;
+      default:
+        const singular = module.endsWith('s') ? module.slice(0, -1) : module;
+        return `${titleAction} ${singular.charAt(0).toUpperCase() + singular.slice(1)}`;
+    }
+  }
+
 
   return (
     <form onSubmit={handleSubmit}>
@@ -239,7 +291,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          {item ? 'Save Changes' : `Create ${module === 'staff' ? 'Staff Member' : module === 'staffCredentials' ? 'Credential' : module.slice(0, -1)}`}
+          {getModalTitle()}
         </Button>
       </div>
     </form>

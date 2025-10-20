@@ -131,6 +131,41 @@ export type Schedule = {
   createdAt: string;
 };
 
-export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials';
+export type ServicePlan = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  planName: string;
+  type: 'Medical' | 'Personal Care' | 'Social';
+  billingCode: string;
+  status: 'Active' | 'Inactive' | 'Pending';
+};
 
-export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential;
+export type CarePlan = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  planName: string;
+  assignedStaffId: number;
+  assignedStaff: string;
+  status: 'Active' | 'Completed' | 'On-Hold';
+};
+
+export type Authorization = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  servicePlanId: number;
+  servicePlan: string;
+  serviceType: string;
+  billingCode: string;
+  authorizedHours: number;
+  usedHours: number;
+  startDate: string;
+  endDate: string;
+  status: 'Active' | 'Expired' | 'Pending';
+};
+
+export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations';
+
+export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential | ServicePlan | CarePlan | Authorization;

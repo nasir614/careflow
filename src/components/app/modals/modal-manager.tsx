@@ -22,6 +22,9 @@ export function ModalManager() {
   const getSingularModuleName = (module: string) => {
     if (module === 'staffCredentials') return 'Staff Credential';
     if (module === 'staff') return 'Staff Member';
+    if (module === 'servicePlans') return 'Service Plan';
+    if (module === 'carePlans') return 'Care Plan';
+    if (module === 'authorizations') return 'Authorization';
     if (module.endsWith('s')) return module.slice(0, -1);
     return module;
   }
@@ -68,7 +71,7 @@ export function ModalManager() {
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && (activeModule === 'clients' || activeModule === 'staffCredentials'));
+  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || (['add', 'edit'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations'].includes(activeModule));
 
   return (
     <Dialog open={modalOpen} onOpenChange={closeModal}>

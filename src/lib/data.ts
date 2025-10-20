@@ -1,4 +1,4 @@
-import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, StaffCredential } from './types';
+import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, StaffCredential, ServicePlan, CarePlan, Authorization } from './types';
 
 export const initialClients: Client[] = [
     { 
@@ -67,7 +67,7 @@ export const initialClients: Client[] = [
       createdAt: '2024-03-10'
     },
     { 
-      id: 4, 
+      id: 4,
       firstName: 'Emily', 
       lastName: 'Davis', 
       dob: '1982-04-30',
@@ -189,7 +189,7 @@ export const initialClients: Client[] = [
     { 
       id: 4, 
       clientId: 1,
-      clientName: 'John Doe', 
+      clientName: 'John Doe',
       staffId: 1,
       staffName: 'Dr. Sarah Mitchell',
       serviceType: 'Medical Check-up', 
@@ -223,5 +223,25 @@ export const initialClients: Client[] = [
       createdAt: '2024-12-18'
     },
   ];
+
+  export const initialServicePlans: ServicePlan[] = [
+    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'Standard Day Care', type: 'Personal Care', billingCode: 'T2021', status: 'Active' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Enhanced Personal Support', type: 'Personal Care', billingCode: 'T1019', status: 'Active' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Socialization & Activities', type: 'Social', billingCode: 'S5100', status: 'Active' },
+    { id: 4, clientId: 1, clientName: 'John Doe', planName: 'Medical Monitoring', type: 'Medical', billingCode: 'T1002', status: 'Inactive' },
+  ];
+
+  export const initialCarePlans: CarePlan[] = [
+    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'John\'s Daily Support', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'Active' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Sarah\'s Nursing Care', assignedStaffId: 3, assignedStaff: 'Lisa Nurse', status: 'Active' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Mike\'s Community Engagement', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'On-Hold' },
+  ];
+  
+  export const initialAuthorizations: Authorization[] = [
+    { id: 1, clientId: 1, clientName: 'John Doe', servicePlanId: 1, servicePlan: 'Standard Day Care', serviceType: 'Personal Care', billingCode: 'T2021', authorizedHours: 120, usedHours: 45.5, startDate: '2024-01-01', endDate: '2024-06-30', status: 'Active' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', servicePlanId: 2, servicePlan: 'Enhanced Personal Support', serviceType: 'Personal Care', billingCode: 'T1019', authorizedHours: 80, usedHours: 70, startDate: '2024-01-01', endDate: '2024-03-31', status: 'Expired' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', servicePlanId: 3, servicePlan: 'Socialization & Activities', serviceType: 'Social', billingCode: 'S5100', authorizedHours: 50, usedHours: 15, startDate: '2024-02-01', endDate: '2024-07-31', status: 'Active' },
+  ];
+    
 
     

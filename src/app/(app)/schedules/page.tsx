@@ -65,7 +65,7 @@ const columns: ColumnDef<Schedule>[] = [
               key={day}
               className={cn(
                 'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold',
-                isScheduled ? 'bg-primary/20 text-primary-foreground' : 'bg-gray-100 text-gray-500'
+                isScheduled ? 'bg-primary/20 text-primary' : 'bg-gray-100 text-gray-500'
               )}
               title={day.charAt(0).toUpperCase() + day.slice(1)}
             >
@@ -225,3 +225,5 @@ export default function SchedulesPage() {
     </div>
   );
 }
+
+    
