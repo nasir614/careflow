@@ -1,172 +1,249 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save } from 'lucide-react';
-import type { BulkAttendanceData, AttendanceStatus } from '@/lib/types';
+import { Loader2, Save, CalendarDays } from 'lucide-react';
+import type { BulkAttendanceData, AttendanceStatus, Client } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
+import { getDaysInMonth, format, startOfMonth } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface BulkAttendanceFormProps {
-  onSubmit: (data: BulkAttendanceData) => void;
-  isLoading: boolean;
-  onCancel: () => void;
+interface DailyLog {
+  date: string;
+  status: AttendanceStatus;
+  checkInAM: string;
+  checkOutAM: string;
+  checkInPM: string;
+  checkOutPM: string;
+  notes: string;
+  isHoliday: boolean; // You might want to pass this in based on a holiday calendar
 }
 
 export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: BulkAttendanceFormProps) {
   const { clients, staff } = useCareFlow();
-  const [formData, setFormData] = useState<Partial<BulkAttendanceData>>({
-    clientIds: [],
-    status: 'present',
-    serviceType: 'Adult Day Care',
-    location: 'Daycare Center',
-  });
-  const [selectAllClients, setSelectAllClients] = useState(false);
+  
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedServiceType, setSelectedServiceType] = useState<string>('Adult Day Care');
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
 
-  const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
-  const attendanceStatusOptions: {value: AttendanceStatus, label: string}[] = [
-    { value: 'present', label: 'Present' },
-    { value: 'excused', label: 'Excused' },
-    { value: 'absent', label: 'Absent (General)' },
-    { value: 'absent_hospital', label: 'Absent (Hospital)' },
-    { value: 'absent_travel', label: 'Absent (Travel)' },
-    { value: 'absent_personal', label: 'Absent (Personal)' },
-  ];
+  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Default values to apply to all rows
+  const [defaultStatus, setDefaultStatus] = useState<AttendanceStatus>('present');
+  const [defaultCheckInAM, setDefaultCheckInAM] = useState('09:00');
+  const [defaultCheckOutPM, setDefaultCheckOutPM] = useState('15:00');
 
-  const handleSelectChange = (name: keyof BulkAttendanceData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
-  const handleClientSelection = (clientId: number) => {
-    setFormData(prev => {
-        const clientIds = prev.clientIds || [];
-        if (clientIds.includes(clientId)) {
-            return { ...prev, clientIds: clientIds.filter(id => id !== clientId) };
-        } else {
-            return { ...prev, clientIds: [...clientIds, clientId] };
-        }
-    });
-  };
+  useEffect(() => {
+    if (selectedMonth && selectedClient) {
+      const monthDate = new Date(selectedMonth + '-02'); // Use day 2 to avoid timezone issues
+      const daysInMonth = getDaysInMonth(monthDate);
+      const monthStart = startOfMonth(monthDate);
+      
+      const logs: DailyLog[] = Array.from({ length: daysInMonth }, (_, i) => {
+        const day = new Date(monthStart);
+        day.setDate(i + 1);
+        const dayOfWeek = day.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  const handleSelectAllClients = (checked: boolean) => {
-    setSelectAllClients(checked);
-    if (checked) {
-        setFormData(prev => ({ ...prev, clientIds: clients.map(c => c.id) }));
+        return {
+          date: format(day, 'yyyy-MM-dd'),
+          status: isWeekend ? 'absent' : 'present',
+          checkInAM: isWeekend ? '' : '09:00',
+          checkOutAM: '',
+          checkInPM: '',
+          checkOutPM: isWeekend ? '' : '15:00',
+          notes: '',
+          isHoliday: false,
+        };
+      });
+      setDailyLogs(logs);
     } else {
-        setFormData(prev => ({ ...prev, clientIds: [] }));
+      setDailyLogs([]);
     }
+  }, [selectedMonth, selectedClient]);
+
+
+  const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
+    const newLogs = [...dailyLogs];
+    (newLogs[index] as any)[field] = value;
+    setDailyLogs(newLogs);
+  };
+  
+  const applyDefaults = () => {
+    setDailyLogs(logs => logs.map(log => {
+      const dayOfWeek = new Date(log.date).getDay();
+      if(dayOfWeek !== 0 && dayOfWeek !== 6) { // Not a weekend
+        return {
+          ...log,
+          status: defaultStatus,
+          checkInAM: defaultCheckInAM,
+          checkOutAM: '',
+          checkInPM: '',
+          checkOutPM: defaultCheckOutPM,
+        }
+      }
+      return log;
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.clientIds || formData.clientIds.length === 0) {
-        // You might want to show a toast message here
-        console.error("No clients selected");
-        return;
+    if (!selectedClient || !selectedStaffId) {
+      // You might want to show a toast message here
+      console.error("Client, Staff and Service must be selected");
+      return;
     }
-    onSubmit(formData as BulkAttendanceData);
+
+    // Filter to only submit logs that are not 'absent' to avoid creating unnecessary records
+    const logsToSubmit = dailyLogs.filter(log => log.status !== 'absent');
+    
+    // Transform dailyLogs into the format expected by handleBulkAddAttendance
+    const data: BulkAttendanceData = {
+      clientIds: [selectedClient.id],
+      staffId: parseInt(selectedStaffId, 10),
+      serviceType: selectedServiceType,
+      location: 'Daycare Center', // Or make this configurable
+      billingCode: 'T2021', // Or make this configurable
+      // These fields are now handled per-day, so we pass the array of logs
+      dailyLogs: logsToSubmit.map(log => ({
+        date: log.date,
+        status: log.status,
+        checkInAM: log.checkInAM,
+        checkOutAM: log.checkOutAM,
+        checkInPM: log.checkInPM,
+        checkOutPM: log.checkOutPM,
+        notes: log.notes,
+      })),
+      // startDate and endDate are not needed for this new submission format
+      startDate: '',
+      endDate: '',
+    };
+    
+    onSubmit(data);
   };
+
+  const attendanceStatusOptions: {value: AttendanceStatus, label: string}[] = [
+    { value: 'present', label: 'Present' },
+    { value: 'excused', label: 'Excused' },
+    { value: 'absent', label: 'Absent' },
+    { value: 'absent_hospital', label: 'Hospital' },
+    { value: 'absent_travel', label: 'Travel' },
+    { value: 'absent_personal', label: 'Personal' },
+  ];
   
   return (
     <form onSubmit={handleSubmit}>
-      <div className="space-y-6 p-1">
-        <div>
-          <h3 className="font-semibold text-foreground border-b pb-2 mb-4">Select Clients</h3>
-          <div className="flex items-center space-x-2 mb-4">
-            <Checkbox id="selectAll" checked={selectAllClients} onCheckedChange={handleSelectAllClients} />
-            <Label htmlFor="selectAll" className="font-medium">Select All Clients</Label>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
-            {clients.map(client => (
-              <div key={client.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`client-${client.id}`}
-                  checked={formData.clientIds?.includes(client.id)}
-                  onCheckedChange={() => handleClientSelection(client.id)}
-                />
-                <Label htmlFor={`client-${client.id}`} className="text-sm font-normal">
-                  {client.firstName} {client.lastName}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="font-semibold text-foreground border-b pb-2 mb-4">Log Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Start Date</Label>
-              <Input type="date" name="startDate" onChange={handleChange} required />
-            </div>
-            <div>
-              <Label>End Date</Label>
-              <Input type="date" name="endDate" onChange={handleChange} required />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Assigned Staff</Label>
-              <Select onValueChange={(value) => handleSelectChange('staffId', parseInt(value))} required>
-                <SelectTrigger><SelectValue placeholder="Select Staff" /></SelectTrigger>
-                <SelectContent>
-                  {staff.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Service Type</Label>
-              <Select value={formData.serviceType} onValueChange={(value) => handleSelectChange('serviceType', value)} required>
-                <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
-                <SelectContent>
-                    {serviceTypeOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="space-y-4 p-1">
+          {/* Top selection fields */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded-lg bg-muted/50">
+             <div className="md:col-span-2">
+                <Label>Client</Label>
+                <Select onValueChange={(val) => setSelectedClient(clients.find(c => String(c.id) === val) || null)}>
+                    <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
+                    <SelectContent>
+                      {clients.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.firstName} {c.lastName}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+             </div>
              <div>
-              <Label>Location</Label>
-              <Input name="location" value={formData.location || ''} onChange={handleChange} required />
-            </div>
+                <Label>Assigned Staff</Label>
+                <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                    <SelectTrigger><SelectValue placeholder="Select Staff" /></SelectTrigger>
+                    <SelectContent>
+                    {staff.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+             </div>
+             <div>
+                <Label>Month</Label>
+                <Input type="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} />
+             </div>
           </div>
-        </div>
 
-        <div>
-          <h3 className="font-semibold text-foreground border-b pb-2 mb-4">Time & Status</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div><Label>Check In (AM)</Label><Input type="time" name="checkInAM" onChange={handleChange} /></div>
-            <div><Label>Check Out (AM)</Label><Input type="time" name="checkOutAM" onChange={handleChange} /></div>
-            <div><Label>Check In (PM)</Label><Input type="time" name="checkInPM" onChange={handleChange} /></div>
-            <div><Label>Check Out (PM)</Label><Input type="time" name="checkOutPM" onChange={handleChange} /></div>
-          </div>
-          <div className="mt-4">
-            <Label>Status</Label>
-            <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value as AttendanceStatus)} required>
-                <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
-                <SelectContent>
-                    {attendanceStatusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div>
-          <Label>Notes</Label>
-          <Textarea name="notes" onChange={handleChange} />
-        </div>
+          {selectedClient && (
+            <>
+              {/* Default settings bar */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-3 border rounded-lg">
+                <div className="col-span-1 md:col-span-3 grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">Default Status</Label>
+                    <Select value={defaultStatus} onValueChange={val => setDefaultStatus(val as AttendanceStatus)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{attendanceStatusOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Default In</Label>
+                    <Input type="time" value={defaultCheckInAM} onChange={e => setDefaultCheckInAM(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Default Out</Label>
+                    <Input type="time" value={defaultCheckOutPM} onChange={e => setDefaultCheckOutPM(e.target.value)} />
+                  </div>
+                </div>
+                <Button type="button" onClick={applyDefaults} className="w-full">Apply to All</Button>
+              </div>
+
+              {/* Timesheet Grid */}
+              <ScrollArea className="h-[40vh] w-full border rounded-lg">
+                <div className="p-4 space-y-3">
+                  {dailyLogs.map((log, index) => {
+                    const day = new Date(log.date + 'T12:00:00'); // Use noon to avoid timezone shifts
+                    return (
+                      <div key={log.date} className="grid grid-cols-12 gap-x-3 gap-y-2 items-center pb-3 border-b last:border-b-0">
+                          <div className="col-span-12 sm:col-span-2 font-medium flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                               <div>{format(day, 'EEE, dd')}</div>
+                               <div className="text-xs text-muted-foreground">{format(day, 'MMMM yyyy')}</div>
+                            </div>
+                          </div>
+                          <div className="col-span-6 sm:col-span-2">
+                             <Select value={log.status} onValueChange={(val) => handleDailyLogChange(index, 'status', val)}>
+                                <SelectTrigger className="h-9"><SelectValue/></SelectTrigger>
+                                <SelectContent>{attendanceStatusOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                             </Select>
+                          </div>
+                          <div className="col-span-6 sm:col-span-2">
+                            <Input type="time" value={log.checkInAM} onChange={e => handleDailyLogChange(index, 'checkInAM', e.target.value)} disabled={log.status !== 'present'} />
+                          </div>
+                          <div className="col-span-6 sm:col-span-2">
+                            <Input type="time" value={log.checkOutPM} onChange={e => handleDailyLogChange(index, 'checkOutPM', e.target.value)} disabled={log.status !== 'present'} />
+                          </div>
+                          <div className="col-span-6 sm:col-span-4">
+                            <Input placeholder="Notes..." value={log.notes} onChange={e => handleDailyLogChange(index, 'notes', e.target.value)} />
+                          </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </>
+          )}
+
       </div>
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading || !selectedClient}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           Generate Logs
         </Button>
       </div>
     </form>
   );
+}
+
+// Add a placeholder for props, if it's not defined anywhere else.
+// This is to satisfy TypeScript if the component is used elsewhere without this interface.
+interface BulkAttendanceFormProps {
+  onSubmit: (data: BulkAttendanceData) => void;
+  isLoading: boolean;
+  onCancel: () => void;
 }

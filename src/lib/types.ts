@@ -73,20 +73,32 @@ export type Attendance = {
   createdAt: string;
 };
 
+export type DailyLogEntry = {
+    date: string;
+    status: AttendanceStatus;
+    checkInAM: string;
+    checkOutAM: string;
+    checkInPM: string;
+    checkOutPM: string;
+    notes: string;
+};
+
 export type BulkAttendanceData = {
   clientIds: number[];
   staffId: number;
   serviceType: string;
   location: string;
   billingCode: string;
-  startDate: string;
-  endDate: string;
-  checkInAM: string;
-  checkOutAM: string;
-  checkInPM: string;
-  checkOutPM: string;
-  status: AttendanceStatus;
-  notes: string;
+  startDate: string; // Keep for old logic fallback, but not used in new form
+  endDate: string; // Keep for old logic fallback, but not used in new form
+  dailyLogs?: DailyLogEntry[]; // New field for the timesheet
+  // The following are now part of dailyLogs, but kept for old logic
+  checkInAM?: string;
+  checkOutAM?: string;
+  checkInPM?: string;
+  checkOutPM?: string;
+  status?: AttendanceStatus;
+  notes?: string;
 };
 
 export type Compliance = {
