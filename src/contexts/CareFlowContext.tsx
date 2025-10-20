@@ -281,82 +281,45 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         return staffMember ? staffMember.name : 'Unknown Staff';
       };
 
-      const findServicePlanName = (planId: number | string) => {
-        const plan = servicePlans.find(p => String(p.id) === String(planId));
-        return plan ? plan.planName : 'Unknown Service Plan';
+      const findServicePlan = (planId: number | string) => {
+        return servicePlans.find(p => String(p.id) === String(planId));
       }
 
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
+        
+        // Add relational data before setting state
+        if ('clientId' in newItem) newItem.clientName = findClientName(newItem.clientId);
+        if ('staffId' in newItem) newItem.staffName = findStaffName(newItem.staffId);
+        if ('assignedStaffId' in newItem) newItem.assignedStaff = findStaffName(newItem.assignedStaffId);
+        if ('servicePlanId' in newItem) {
+            const plan = findServicePlan(newItem.servicePlanId);
+            newItem.servicePlan = plan?.planName || 'N/A';
+            newItem.serviceType = plan?.type || 'N/A';
+            newItem.billingCode = plan?.billingCode || 'N/A';
+        }
+
         switch(module) {
-          case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
+          case 'clients': setClients(prev => [...prev, newItem]); break;
           case 'staff': setStaff(prev => [...prev, newItem]); break;
           case 'schedules': 
-             newItem = { 
-               ...newItem, 
-               clientName: findClientName(newItem.clientId),
-               staffName: findStaffName(newItem.staffId),
-               usedUnits: 0, 
-               createdAt: new Date().toISOString().slice(0, 10) 
-             };
-            setSchedules(prev => [...prev, newItem]); 
+             newItem.usedUnits = 0; // Set default
+             setSchedules(prev => [...prev, newItem]); 
             break;
-          case 'staffCredentials': 
-            newItem = {
-              ...newItem,
-              staffName: findStaffName(newItem.staffId),
-            }
-            setStaffCredentials(prev => [...prev, newItem]); 
-            break;
-          case 'servicePlans':
-            newItem = {
-              ...newItem,
-              clientName: findClientName(newItem.clientId),
-            } 
-            setServicePlans(prev => [...prev, newItem]); 
-            break;
-          case 'carePlans':
-             newItem = {
-              ...newItem,
-              clientName: findClientName(newItem.clientId),
-              assignedStaff: findStaffName(newItem.assignedStaffId)
-            }
-            setCarePlans(prev => [...prev, newItem]); 
-            break;
+          case 'staffCredentials': setStaffCredentials(prev => [...prev, newItem]); break;
+          case 'servicePlans': setServicePlans(prev => [...prev, newItem]); break;
+          case 'carePlans': setCarePlans(prev => [...prev, newItem]); break;
           case 'authorizations': 
-             const servicePlan = servicePlans.find(p => p.id === newItem.servicePlanId);
-             newItem = {
-              ...newItem,
-              clientName: findClientName(newItem.clientId),
-              servicePlan: servicePlan?.planName || 'N/A',
-              serviceType: servicePlan?.type || 'N/A',
-              billingCode: servicePlan?.billingCode || 'N/A',
-              usedHours: 0,
-            }
-            setAuthorizations(prev => [...prev, newItem]); 
+             newItem.usedHours = 0; // Set default
+             setAuthorizations(prev => [...prev, newItem]); 
             break;
-          case 'compliance': 
-            newItem = {
-              ...newItem,
-              client: findClientName(newItem.clientId),
-            }
-            setCompliance(prev => [...prev, newItem]); break;
+          case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
-            newItem = {
-              ...newItem,
-              invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
-              amount: (data.units || 0) * (data.rate || 0),
-              clientName: findClientName(newItem.clientId),
-            };
+            newItem.invoiceNo = `INV-${Date.now().toString().slice(-6)}`;
+            newItem.amount = (data.units || 0) * (data.rate || 0);
             setBilling(prev => [...prev, newItem]); 
             break;
-          case 'transportation': 
-            newItem = {
-              ...newItem,
-              client: findClientName(newItem.clientId),
-            };
-            setTransportation(prev => [...prev, newItem]); 
-            break;
+          case 'transportation': setTransportation(prev => [...prev, newItem]); break;
           case 'attendance':
              const calculateHours = (timeInStr: string, timeOutStr: string) => {
                 if (!timeInStr || !timeOutStr) return 0;
@@ -367,85 +330,40 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                 }
                 return 0;
              };
-             const totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
-             newItem = {
-                ...newItem,
-                clientName: findClientName(data.clientId),
-                staffName: findStaffName(data.staffId),
-                totalHours: totalHours,
-                location: 'Daycare Center'
-             };
+             newItem.totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
+             newItem.location = 'Daycare Center';
              setAttendance(prev => [...prev, newItem]);
              break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
       } else if (action === 'edit' && item) {
         let updatedItem: any = { ...item, ...data };
+        
+        // Refresh relational data
+        if ('clientId' in updatedItem) updatedItem.clientName = findClientName(updatedItem.clientId);
+        if ('staffId' in updatedItem) updatedItem.staffName = findStaffName(updatedItem.staffId);
+        if ('assignedStaffId' in updatedItem) updatedItem.assignedStaff = findStaffName(updatedItem.assignedStaffId);
+        if ('servicePlanId' in updatedItem) {
+            const plan = findServicePlan(updatedItem.servicePlanId);
+            updatedItem.servicePlan = plan?.planName || 'N/A';
+            updatedItem.serviceType = plan?.type || 'N/A';
+            updatedItem.billingCode = plan?.billingCode || 'N/A';
+        }
+
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
-          case 'schedules': 
-             updatedItem = { 
-               ...updatedItem,
-               clientName: findClientName(updatedItem.clientId),
-               staffName: findStaffName(updatedItem.staffId),
-             };
-            setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
-          case 'staffCredentials':
-             updatedItem = {
-              ...updatedItem,
-              staffName: findStaffName(updatedItem.staffId),
-            }
-            setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); 
-            break;
-          case 'servicePlans':
-            updatedItem = {
-              ...updatedItem,
-              clientName: findClientName(updatedItem.clientId),
-            } 
-            setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p)); 
-            break;
-          case 'carePlans': 
-            updatedItem = {
-              ...updatedItem,
-              clientName: findClientName(updatedItem.clientId),
-              assignedStaff: findStaffName(updatedItem.assignedStaffId)
-            }
-            setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); 
-            break;
-          case 'authorizations': 
-             const servicePlan = servicePlans.find(p => p.id === updatedItem.servicePlanId);
-             updatedItem = {
-              ...updatedItem,
-              clientName: findClientName(updatedItem.clientId),
-              servicePlan: servicePlan?.planName || 'N/A',
-              serviceType: servicePlan?.type || 'N/A',
-              billingCode: servicePlan?.billingCode || 'N/A',
-            }
-            setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); 
-            break;
-          case 'compliance':
-            updatedItem = {
-              ...updatedItem,
-              client: findClientName(updatedItem.clientId),
-            }
-            setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); 
-            break;
+          case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
+          case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
+          case 'servicePlans': setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p)); break;
+          case 'carePlans': setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); break;
+          case 'authorizations': setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); break;
+          case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': 
-             updatedItem = {
-              ...updatedItem,
-              amount: (data.units || (item as Billing).units) * (data.rate || (item as Billing).rate),
-              clientName: findClientName(updatedItem.clientId),
-            };
+             updatedItem.amount = (data.units ?? (item as Billing).units) * (data.rate ?? (item as Billing).rate);
             setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
             break;
-          case 'transportation': 
-            updatedItem = {
-              ...updatedItem,
-              client: findClientName(updatedItem.clientId),
-            };
-            setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); 
-            break;
+          case 'transportation': setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
           case 'attendance':
              const calculateHours = (timeInStr: string, timeOutStr: string) => {
                 if (!timeInStr || !timeOutStr) return 0;
@@ -456,13 +374,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                 }
                 return 0;
              };
-             const totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
-             updatedItem = {
-                ...updatedItem,
-                clientName: findClientName(data.clientId),
-                staffName: findStaffName(data.staffId),
-                totalHours: totalHours,
-             };
+             updatedItem.totalHours = calculateHours(data.checkInAM, data.checkOutAM) + calculateHours(data.checkInPM, data.checkOutPM);
              setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a));
              break;
         }

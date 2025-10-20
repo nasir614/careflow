@@ -23,6 +23,9 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
     if (item) {
       setFormData({
         ...item,
+        // Ensure IDs are strings for select components
+        clientId: String(item.clientId),
+        staffId: String(item.staffId),
         days: Array.isArray(item.days) ? item.days.join(', ') : item.days,
       });
     } else {
@@ -31,35 +34,22 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
   }, [item]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, valueAsNumber } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'number' ? valueAsNumber : value }));
+    const { name, value } = e.target;
+    const isNumber = e.target.type === 'number' && value !== '';
+    setFormData(prev => ({ ...prev, [name]: isNumber ? parseFloat(value) : value }));
   };
 
   const handleSelectChange = (name: keyof Schedule, value: string) => {
-    const isClient = name === 'clientName';
-    const isStaff = name === 'staffName';
-    
-    let updatedData: Partial<Schedule> = { ...formData, [name]: value };
-
-    if (isClient) {
-        const client = clients.find(c => `${c.firstName} ${c.lastName}` === value);
-        if (client) {
-            updatedData = { ...updatedData, clientId: client.id };
-        }
-    }
-    if (isStaff) {
-        const staffMember = staff.find(s => s.name === value);
-        if (staffMember) {
-            updatedData = { ...updatedData, staffId: staffMember.id };
-        }
-    }
-    setFormData(updatedData);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const dataToSubmit = {
       ...formData,
+      // Convert IDs back to numbers
+      clientId: formData.clientId ? parseInt(String(formData.clientId), 10) : undefined,
+      staffId: formData.staffId ? parseInt(String(formData.staffId), 10) : undefined,
       days: typeof formData.days === 'string' ? formData.days.split(',').map(d => d.trim()) : formData.days,
     };
     onSubmit(dataToSubmit);
@@ -71,19 +61,19 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1">Client</label>
-              <Select value={formData.clientName || ""} onValueChange={(value) => handleSelectChange('clientName', value)} required>
+              <Select value={formData.clientId as string | undefined} onValueChange={(value) => handleSelectChange('clientId', value)} required>
                 <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
                 <SelectContent>
-                  {clients.map(c => <SelectItem key={c.id} value={`${c.firstName} ${c.lastName}`}>{c.firstName} {c.lastName}</SelectItem>)}
+                  {clients.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.firstName} {c.lastName}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
              <div className="relative">
               <label className="block text-sm font-medium text-muted-foreground mb-1">Assigned Staff</label>
-              <Select value={formData.staffName || ""} onValueChange={(value) => handleSelectChange('staffName', value)} required>
+              <Select value={formData.staffId as string | undefined} onValueChange={(value) => handleSelectChange('staffId', value)} required>
                 <SelectTrigger><SelectValue placeholder="Select Staff" /></SelectTrigger>
                 <SelectContent>
-                  {staff.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {staff.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

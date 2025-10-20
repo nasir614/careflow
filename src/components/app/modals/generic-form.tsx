@@ -180,8 +180,8 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   }, [item, module]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const isNumber = (e.target as HTMLInputElement).type === 'number';
+    const { name, value } = e.target;
+    const isNumber = (e.target as HTMLInputElement).type === 'number' && value !== '';
     setFormData(prev => ({ ...prev, [name]: isNumber ? parseFloat(value) : value }));
   };
 
@@ -196,18 +196,15 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const dataToSubmit = { ...formData };
-    if ('clientId' in dataToSubmit && typeof dataToSubmit.clientId === 'string') {
-        dataToSubmit.clientId = parseInt(dataToSubmit.clientId, 10);
-    }
-    if ('staffId' in dataToSubmit && typeof dataToSubmit.staffId === 'string') {
-        dataToSubmit.staffId = parseInt(dataToSubmit.staffId, 10);
-    }
-    if ('assignedStaffId' in dataToSubmit && typeof dataToSubmit.assignedStaffId === 'string') {
-        dataToSubmit.assignedStaffId = parseInt(dataToSubmit.assignedStaffId, 10);
-    }
-     if ('servicePlanId' in dataToSubmit && typeof dataToSubmit.servicePlanId === 'string') {
-        dataToSubmit.servicePlanId = parseInt(dataToSubmit.servicePlanId, 10);
-    }
+    
+    // Convert string IDs back to numbers before submission
+    const idFields: (keyof AnyData)[] = ['clientId', 'staffId', 'assignedStaffId', 'servicePlanId'];
+    idFields.forEach(field => {
+      if (dataToSubmit[field] && typeof dataToSubmit[field] === 'string') {
+        (dataToSubmit as any)[field] = parseInt(dataToSubmit[field] as string, 10);
+      }
+    });
+
     onSubmit(dataToSubmit);
   };
   

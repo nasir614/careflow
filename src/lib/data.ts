@@ -1,5 +1,5 @@
 import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, StaffCredential, ServicePlan, CarePlan, Authorization } from './types';
-import { format, subDays } from 'date-fns';
+import { format, subDays, addDays } from 'date-fns';
 
 const today = new Date();
 const yesterday = subDays(today, 1);
@@ -117,11 +117,11 @@ export const initialClients: Client[] = [
       totalUnits: 60,
       usedUnits: 24,
       hoursPerDay: 6.5,
-      startDate: '2024-01-01',
+      startDate: '2024-07-01',
       endDate: '2024-12-31',
       days: ['Monday', 'Wednesday', 'Friday'],
       status: 'active',
-      createdAt: '2023-12-15'
+      createdAt: '2024-06-15'
     },
     { 
       id: 402, 
@@ -135,11 +135,11 @@ export const initialClients: Client[] = [
       totalUnits: 120,
       usedUnits: 85,
       hoursPerDay: 4,
-      startDate: '2024-02-01',
-      endDate: '2024-11-30',
+      startDate: '2024-05-01',
+      endDate: '2024-10-31',
       days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
       status: 'active',
-      createdAt: '2024-01-20'
+      createdAt: '2024-04-20'
     },
     { 
       id: 403, 
@@ -148,7 +148,7 @@ export const initialClients: Client[] = [
       staffId: 202,
       staffName: 'John Caregiver',
       serviceType: 'Day Support', 
-      serviceCode: 'T2021',
+      serviceCode: 'S5150',
       frequency: 'Weekly',
       totalUnits: 40,
       usedUnits: 40,
@@ -182,16 +182,16 @@ export const initialClients: Client[] = [
   export const initialAttendance: Attendance[] = [
     { id: 501, clientId: 101, clientName: 'John Doe', staffId: 202, staffName: 'John Caregiver', serviceType: 'Adult Day Care', date: format(today, 'yyyy-MM-dd'), checkInAM: '09:00', checkOutAM: '12:00', checkInPM: '13:00', checkOutPM: '15:30', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: 'Regular day', createdAt: today.toISOString() },
     { id: 502, clientId: 102, clientName: 'Sarah Johnson', staffId: 203, staffName: 'Lisa Nurse', serviceType: 'Personal Care', date: format(today, 'yyyy-MM-dd'), checkInAM: '08:45', checkOutAM: '12:00', checkInPM: '12:30', checkOutPM: '15:15', totalHours: 6, location: 'Daycare Center', billingCode: 'T1019', status: 'present', notes: '', createdAt: today.toISOString() },
-    { id: 503, clientId: 103, clientName: 'Mike Williams', staffId: 202, staffName: 'John Caregiver', serviceType: 'Day Support', date: format(yesterday, 'yyyy-MM-dd'), checkInAM: null, checkOutAM: null, checkInPM: null, checkOutPM: null, totalHours: 0, location: 'Home Visit', billingCode: 'T2021', status: 'excused', notes: 'Medical appt in afternoon', createdAt: yesterday.toISOString() },
+    { id: 503, clientId: 103, clientName: 'Mike Williams', staffId: 202, staffName: 'John Caregiver', serviceType: 'Day Support', date: format(yesterday, 'yyyy-MM-dd'), checkInAM: null, checkOutAM: null, checkInPM: null, checkOutPM: null, totalHours: 0, location: 'Daycare Center', billingCode: 'S5150', status: 'excused', notes: 'Medical appt in afternoon', createdAt: yesterday.toISOString() },
     { id: 504, clientId: 101, clientName: 'John Doe', staffId: 202, staffName: 'John Caregiver', serviceType: 'Adult Day Care', date: format(yesterday, 'yyyy-MM-dd'), checkInAM: '09:02', checkOutAM: '12:05', checkInPM: '13:00', checkOutPM: '15:33', totalHours: 5.5, location: 'Daycare Center', billingCode: 'T2021', status: 'present', notes: '', createdAt: yesterday.toISOString() },
     { id: 505, clientId: 101, clientName: 'John Doe', staffId: 202, staffName: 'John Caregiver', serviceType: 'Adult Day Care', date: format(twoDaysAgo, 'yyyy-MM-dd'), checkInAM: null, checkOutAM: null, checkInPM: null, checkOutPM: null, totalHours: 0, location: 'Daycare Center', billingCode: 'T2021', status: 'absent', notes: 'No show', createdAt: twoDaysAgo.toISOString() },
 ];
   
   export const initialBilling: Billing[] = [
-    { id: 601, invoiceNo: 'INV-2024-001', clientId: 101, clientName: 'John Doe', scheduleId: 401, serviceDate: '2024-05-15', serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 25, amount: 162.5, status: 'Paid', createdAt: '2024-05-20', sourceLogId: 'att-504' },
-    { id: 602, invoiceNo: 'INV-2024-002', clientId: 102, clientName: 'Sarah Johnson', scheduleId: 402, serviceDate: '2024-05-19', serviceType: 'Personal Care', serviceCode: 'T1019', units: 4, rate: 30, amount: 120, status: 'Submitted', createdAt: '2024-05-20' },
-    { id: 603, invoiceNo: 'INV-2024-003', clientId: 103, clientName: 'Mike Williams', scheduleId: 403, serviceDate: '2024-05-10', serviceType: 'Day Support', serviceCode: 'S5150', units: 5, rate: 28, amount: 140, status: 'Paid', createdAt: '2024-05-18' },
-    { id: 604, invoiceNo: 'INV-2024-004', clientId: 101, clientName: 'John Doe', scheduleId: 401, serviceDate: '2024-05-08', serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 25, amount: 162.5, status: 'Denied', createdAt: '2024-05-10' },
+    { id: 601, invoiceNo: 'INV-2024-001', clientId: 101, clientName: 'John Doe', scheduleId: 401, serviceDate: format(subDays(today, 10), 'yyyy-MM-dd'), serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 25, amount: 162.5, status: 'Paid', createdAt: format(subDays(today, 5), 'yyyy-MM-dd'), sourceLogId: 'att-504' },
+    { id: 602, invoiceNo: 'INV-2024-002', clientId: 102, clientName: 'Sarah Johnson', scheduleId: 402, serviceDate: format(subDays(today, 6), 'yyyy-MM-dd'), serviceType: 'Personal Care', serviceCode: 'T1019', units: 4, rate: 30, amount: 120, status: 'Submitted', createdAt: format(subDays(today, 5), 'yyyy-MM-dd') },
+    { id: 603, invoiceNo: 'INV-2024-003', clientId: 103, clientName: 'Mike Williams', scheduleId: 403, serviceDate: format(subDays(today, 15), 'yyyy-MM-dd'), serviceType: 'Day Support', serviceCode: 'S5150', units: 5, rate: 28, amount: 140, status: 'Paid', createdAt: format(subDays(today, 7), 'yyyy-MM-dd') },
+    { id: 604, invoiceNo: 'INV-2024-004', clientId: 101, clientName: 'John Doe', scheduleId: 401, serviceDate: format(subDays(today, 17), 'yyyy-MM-dd'), serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 25, amount: 162.5, status: 'Denied', createdAt: format(subDays(today, 15), 'yyyy-MM-dd') },
   ];
   
   export const initialTransportation: Transportation[] = [
@@ -214,13 +214,15 @@ export const initialClients: Client[] = [
   ];
   
   export const initialAuthorizations: Authorization[] = [
-    { id: 1001, clientId: 101, servicePlanId: 801, clientName: 'John Doe', servicePlan: 'Standard Day Care', serviceType: 'Personal Care', billingCode: 'T2021', authorizedHours: 120, usedHours: 45.5, startDate: '2024-01-01', endDate: '2024-06-30', status: 'Active' },
+    { id: 1001, clientId: 101, servicePlanId: 801, clientName: 'John Doe', servicePlan: 'Standard Day Care', serviceType: 'Personal Care', billingCode: 'T2021', authorizedHours: 120, usedHours: 45.5, startDate: '2024-07-01', endDate: '2024-12-31', status: 'Active' },
     { id: 1002, clientId: 102, servicePlanId: 802, clientName: 'Sarah Johnson', servicePlan: 'Enhanced Personal Support', serviceType: 'Personal Care', billingCode: 'T1019', authorizedHours: 80, usedHours: 80, startDate: '2024-01-01', endDate: '2024-03-31', status: 'Expired' },
     { id: 1003, clientId: 103, servicePlanId: 803, clientName: 'Mike Williams', servicePlan: 'Socialization & Activities', serviceType: 'Social', billingCode: 'S5100', authorizedHours: 50, usedHours: 15, startDate: '2024-02-01', endDate: '2024-07-31', status: 'Active' },
+    { id: 1004, clientId: 102, servicePlanId: 802, clientName: 'Sarah Johnson', servicePlan: 'Enhanced Personal Support', serviceType: 'Personal Care', billingCode: 'T1019', authorizedHours: 100, usedHours: 22, startDate: '2024-04-01', endDate: '2024-06-30', status: 'Active' },
+
   ];
 
   export const initialCompliance: Compliance[] = [
-    { id: 1101, client: 'John Doe', clientId: 101, type: 'Authorization', item: 'Service Authorization', status: 'Expiring Soon', dueDate: '2024-10-25', daysLeft: 6 },
-    { id: 1102, client: 'Sarah Johnson', clientId: 102, type: 'Document', item: 'Medical Assessment', status: 'Expired', dueDate: '2024-10-15', daysLeft: -4 },
-    { id: 1103, client: 'Mike Williams', clientId: 103, type: 'Authorization', item: 'Service Authorization', status: 'Current', dueDate: '2024-12-30', daysLeft: 72 },
+    { id: 1101, client: 'John Doe', clientId: 101, type: 'Authorization', item: 'Service Authorization', status: 'Current', dueDate: format(addDays(today, 60), 'yyyy-MM-dd'), daysLeft: 60 },
+    { id: 1102, client: 'Sarah Johnson', clientId: 102, type: 'Document', item: 'Medical Assessment', status: 'Expired', dueDate: format(subDays(today, 15), 'yyyy-MM-dd'), daysLeft: -15 },
+    { id: 1103, client: 'Mike Williams', clientId: 103, type: 'Authorization', item: 'Service Authorization', status: 'Expiring Soon', dueDate: format(addDays(today, 25), 'yyyy-MM-dd'), daysLeft: 25 },
   ];

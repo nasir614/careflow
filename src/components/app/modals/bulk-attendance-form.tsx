@@ -39,6 +39,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [userModifiedDates, setUserModifiedDates] = useState<Set<string>>(new Set());
 
   const [defaults, setDefaults] = useState({
     status: 'present' as Attendance['status'],
@@ -92,10 +93,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
     // Preserve user modifications on month/year change
     const prevLogsMap = new Map(dailyLogs.map(l => [l.date, l]));
     const mergedLogs = newLogs.map(log => {
-      if(prevLogsMap.has(log.date)) {
-        const prevLog = prevLogsMap.get(log.date)!;
-        const isModified = prevLog.status !== 'present' || prevLog.checkInAM || prevLog.checkOutAM || prevLog.checkInPM || prevLog.checkOutPM || prevLog.notes;
-        return isModified ? prevLog : log;
+      if(prevLogsMap.has(log.date) && userModifiedDates.has(log.date)) {
+        return prevLogsMap.get(log.date)!;
       }
       return log;
     });
@@ -107,8 +106,14 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string) => {
     const newLogs = [...dailyLogs];
+    const logDate = newLogs[index].date;
+    
     newLogs[index] = { ...newLogs[index], [field]: value };
     setDailyLogs(newLogs);
+    
+    // Track that the user has modified this date's log
+    const modifiedDateKey = field === 'date' ? value : logDate;
+    setUserModifiedDates(prev => new Set(prev).add(modifiedDateKey));
   };
 
   const addCustomDate = (date: Date | undefined) => {
@@ -231,7 +236,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
                 <CardContent className="max-h-[40vh] overflow-y-auto pr-3">
                 <div className="p-4 space-y-3">
                   {dailyLogs.length > 0 ? dailyLogs.map((log, index) => {
-                    const dayName = log.date && isValid(parse(log.date, 'yyyy-MM-dd', new Date())) 
+                     const dayName = log.date && isValid(parse(log.date, 'yyyy-MM-dd', new Date())) 
                         ? format(parse(log.date, 'yyyy-MM-dd', new Date()), 'EEE') 
                         : '...';
                     return (

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Phone, Mail, MapPin, FileText, UserCog, ClipboardCheck, DollarSign, FileCheck, Calendar, Briefcase } from 'lucide-react';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Badge } from '@/components/ui/badge';
+import { useMemo } from 'react';
 
 interface ViewClientModalProps {
   client: Client;
@@ -44,9 +45,11 @@ const scheduleColumns: ColumnDef<Schedule>[] = [
 ];
 
 export default function ViewClientModal({ client }: ViewClientModalProps) {
-  const { schedules } = useCareFlow();
+  const { schedules, authorizations, servicePlans } = useCareFlow();
   
-  const clientSchedules = schedules.filter(s => s.clientId === client.id);
+  const clientSchedules = useMemo(() => schedules.filter(s => s.clientId === client.id), [schedules, client.id]);
+  const clientAuthorizations = useMemo(() => authorizations.filter(auth => auth.clientId === client.id), [authorizations, client.id]);
+  const clientServicePlans = useMemo(() => servicePlans.filter(plan => plan.clientId === client.id), [servicePlans, client.id]);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -74,15 +77,33 @@ export default function ViewClientModal({ client }: ViewClientModalProps) {
        </InfoBlock>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
            <InfoBlock title="Schedules" icon={Calendar}>
-              <DataTable columns={scheduleColumns} data={clientSchedules} />
+             {clientSchedules.length > 0 ? (
+                <DataTable columns={scheduleColumns} data={clientSchedules} />
+             ) : (
+                <p className="text-sm text-muted-foreground p-4 text-center">No schedules found for this client.</p>
+             )}
            </InfoBlock>
 
            <InfoBlock title="Authorizations" icon={FileCheck}>
-              <p className="text-sm text-muted-foreground p-4 text-center">Authorization tracking coming soon.</p>
+              {clientAuthorizations.length > 0 ? clientAuthorizations.map(auth => (
+                 <div key={auth.id} className="text-sm p-2 rounded-md bg-muted/50">
+                   <p className="font-semibold">{auth.servicePlan}</p>
+                   <p className="text-xs text-muted-foreground">{auth.startDate} to {auth.endDate} - {auth.usedHours}/{auth.authorizedHours} hrs used</p>
+                 </div>
+              )) : (
+                <p className="text-sm text-muted-foreground p-4 text-center">No authorizations found for this client.</p>
+              )}
            </InfoBlock>
            
-           <InfoBlock title="Providers" icon={Briefcase}>
-                <p className="text-sm text-muted-foreground p-4 text-center">Provider tracking coming soon.</p>
+           <InfoBlock title="Service Plans" icon={Briefcase}>
+                {clientServicePlans.length > 0 ? clientServicePlans.map(plan => (
+                  <div key={plan.id} className="text-sm p-2 rounded-md bg-muted/50">
+                    <p className="font-semibold">{plan.planName} <span className={`text-xs font-medium ml-2 p-1 rounded ${plan.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{plan.status}</span></p>
+                    <p className="text-xs text-muted-foreground">{plan.type} - {plan.billingCode}</p>
+                  </div>
+                )) : (
+                  <p className="text-sm text-muted-foreground p-4 text-center">No service plans found for this client.</p>
+                )}
            </InfoBlock>
         </div>
     </div>
