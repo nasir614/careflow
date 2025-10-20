@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarRange, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const scheduleColumns: ColumnDef<Schedule>[] = [
   {
@@ -81,6 +82,12 @@ export default function StaffPage() {
   const { staff, schedules, staffCredentials, openModal } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(staff[0] || null);
+  
+  const getStaffAvatar = (staffId: number) => {
+    const avatar = PlaceHolderImages.find(img => img.id === `staff-${staffId}`);
+    return avatar?.imageUrl || '';
+  }
+
 
   const paginatedStaff = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -103,7 +110,7 @@ export default function StaffPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                     <CardTitle>All Staff</CardTitle>
                 </CardHeader>
@@ -118,25 +125,27 @@ export default function StaffPage() {
                                     selectedStaff?.id === s.id ? "bg-primary/10" : "hover:bg-muted"
                                 )}
                             >
-                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage src={getStaffAvatar(s.id)} alt={s.name} />
                                     <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <div className="font-medium text-sm">{s.name}</div>
                                     <div className="text-xs text-muted-foreground">{s.role}</div>
                                 </div>
-                                <span className={`ml-auto text-xs badge ${s.status === 'Active' ? 'badge-success' : 'badge-danger'}`}>{s.status}</span>
+                                <span className={`ml-auto text-xs font-semibold px-2 py-1 rounded-full ${s.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{s.status}</span>
                             </div>
                         ))}
                     </div>
 
-                    <Pagination
+                   {staff.length > ITEMS_PER_PAGE && (
+                     <Pagination
                         currentPage={currentPage}
                         totalItems={staff.length}
                         itemsPerPage={ITEMS_PER_PAGE}
                         onPageChange={setCurrentPage}
                     />
+                   )}
                 </CardContent>
             </Card>
         </div>
@@ -144,9 +153,9 @@ export default function StaffPage() {
         <div className="lg:col-span-2 space-y-6">
           {selectedStaff ? (
             <>
-              <Card>
+              <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-lg">
                     <CalendarRange className="w-5 h-5 text-primary" />
                     Schedules for {selectedStaff.name}
                   </CardTitle>
@@ -162,9 +171,9 @@ export default function StaffPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-lg">
                     <ShieldCheck className="w-5 h-5 text-primary" />
                     Credentials & Training for {selectedStaff.name}
                   </CardTitle>

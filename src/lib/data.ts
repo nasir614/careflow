@@ -80,9 +80,10 @@ export const initialClients: Client[] = [
   ];
 
   export const initialStaff: Staff[] = [
-    { id: 1, name: 'Dr. Sarah Mitchell', role: 'Medical Director', phone: '614-111-2222', email: 'sarah.m@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Medical', avatarUrl: "https://picsum.photos/seed/101/100/100" },
-    { id: 2, name: 'John Caregiver', role: 'Senior Caregiver', phone: '614-222-3333', email: 'john.c@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Care', avatarUrl: "https://picsum.photos/seed/102/100/100" },
-    { id: 3, name: 'Lisa Nurse', role: 'Registered Nurse', phone: '614-333-4444', email: 'lisa.n@carecloud.com', status: 'Active', schedule: 'Tue-Sat', department: 'Medical', avatarUrl: "https://picsum.photos/seed/103/100/100" },
+    { id: 1, name: 'Dr. Sarah Mitchell', role: 'Medical Director', phone: '614-111-2222', email: 'sarah.m@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Medical' },
+    { id: 2, name: 'John Caregiver', role: 'Senior Caregiver', phone: '614-222-3333', email: 'john.c@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Care' },
+    { id: 3, name: 'Lisa Nurse', role: 'Registered Nurse', phone: '614-333-4444', email: 'lisa.n@carecloud.com', status: 'Active', schedule: 'Tue-Sat', department: 'Medical' },
+    { id: 4, name: 'David Smith', role: 'Caregiver', phone: '614-444-5555', email: 'david.s@carecloud.com', status: 'Inactive', schedule: 'Flexible', department: 'Care' },
   ];
 
   export const initialStaffCredentials: StaffCredential[] = [
@@ -90,6 +91,8 @@ export const initialClients: Client[] = [
     { id: 2, staffId: 2, staffName: 'John Caregiver', role: 'Senior Caregiver', credential: 'CNA', training: 'First Aid', hrDocument: 'Employment Agreement', startDate: '2023-05-15', expirationDate: '2025-05-14', renewalDate: '2025-04-15', isCritical: true, status: 'Active', actionTaken: 'None' },
     { id: 3, staffId: 3, staffName: 'Lisa Nurse', role: 'Registered Nurse', credential: 'RN License', training: 'Basic Life Support', hrDocument: 'Background Check', startDate: '2022-08-01', expirationDate: '2024-07-31', renewalDate: '2024-07-01', isCritical: false, status: 'Expired', actionTaken: 'Renewal notice sent' },
     { id: 4, staffId: 3, staffName: 'Lisa Nurse', role: 'Registered Nurse', credential: 'CPR Certification', training: 'N/A', hrDocument: 'N/A', startDate: '2024-09-01', expirationDate: '2025-08-31', renewalDate: '2025-08-01', isCritical: true, status: 'Expiring Soon', actionTaken: 'Scheduled for class' },
+    { id: 5, staffId: 1, staffName: 'Dr. Sarah Mitchell', credential: 'Board Certification', training: 'N/A', hrDocument: 'N/A', startDate: '2022-01-01', expirationDate: '2024-12-31', renewalDate: '2024-12-01', isCritical: true, status: 'Expiring Soon', actionTaken: 'Renewal application submitted' },
+    { id: 6, staffId: 2, staffName: 'John Caregiver', credential: 'Background Check', training: 'N/A', hrDocument: 'N/A', startDate: '2023-05-10', expirationDate: '2025-05-10', renewalDate: '2025-04-10', isCritical: true, status: 'Active', actionTaken: 'None' },
   ];
 
   export const initialAttendance: Attendance[] = [
@@ -172,5 +175,23 @@ export const initialClients: Client[] = [
       days: ['Monday', 'Wednesday'],
       status: 'expired',
       createdAt: '2024-05-15'
+    },
+    { 
+      id: 4, 
+      clientId: 1,
+      clientName: 'John Doe', 
+      staffId: 1,
+      staffName: 'Dr. Sarah Mitchell',
+      serviceType: 'Medical Check-up', 
+      serviceCode: 'T1002',
+      frequency: 'Monthly',
+      totalUnits: 12,
+      usedUnits: 10,
+      hoursPerDay: 1,
+      startDate: '2025-01-01',
+      endDate: '2025-12-31',
+      days: ['Friday'],
+      status: 'active',
+      createdAt: '2024-12-20'
     },
   ];

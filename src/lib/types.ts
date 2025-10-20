@@ -27,7 +27,6 @@ export type Staff = {
   status: 'Active' | 'Inactive';
   schedule: string;
   department: 'Medical' | 'Care' | 'Administration';
-  avatarUrl?: string;
 };
 
 export type StaffCredential = {
