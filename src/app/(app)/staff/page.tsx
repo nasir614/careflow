@@ -4,11 +4,10 @@ import { useState, useMemo } from 'react';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
-import { Pagination } from '@/components/app/pagination';
 import type { Staff, Schedule, StaffCredential } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarRange, ShieldCheck, Phone, Mail, Briefcase } from 'lucide-react';
+import { CalendarRange, ShieldCheck, Phone, Mail, Briefcase, Contact } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
@@ -188,10 +187,11 @@ export default function StaffPage() {
                 </div>
             </CardHeader>
             <CardContent className="border-t pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
                     <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
                     <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
+                    <InfoItem label="Emergency Contact" value={`${selectedStaff.emergencyContactName} (${selectedStaff.emergencyContactPhone})`} icon={Contact} />
                 </div>
             </CardContent>
         </Card>

@@ -32,7 +32,7 @@ type FieldConfig = {
 const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): FieldConfig[] => {
     const clientOptions = clients.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }));
     const staffOptions = staff.map(s => ({ value: s.id.toString(), label: s.name }));
-    const roleOptions = staff.map(s => s.role);
+    const roleOptions = [...new Set(staff.map(s => s.role))];
     const serviceTypeOptions = ['Adult Day Care', 'Personal Care', 'Day Support', 'Respite Care'];
 
     switch (module) {
@@ -58,7 +58,9 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
                 { name: 'email', label: 'Email', type: 'email', required: true },
                 { name: 'department', label: 'Department', type: 'select', options: ['Medical', 'Care', 'Administration'], required: true },
                 { name: 'schedule', label: 'Schedule', type: 'text', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true }
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'emergencyContactName', label: 'Emergency Contact Name', type: 'text'},
+                { name: 'emergencyContactPhone', label: 'Emergency Contact Phone', type: 'tel'}
             ];
         case 'attendance':
              return [
@@ -210,7 +212,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         <Button type="submit" disabled={isLoading} className="rounded-full">
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          {item ? 'Save Changes' : `Create ${module === 'staffCredentials' ? 'Credential' : module.slice(0, -1)}`}
+          {item ? 'Save Changes' : `Create ${module === 'staff' ? 'Staff Member' : module === 'staffCredentials' ? 'Credential' : module.slice(0, -1)}`}
         </Button>
       </div>
     </form>

@@ -80,10 +80,10 @@ export const initialClients: Client[] = [
   ];
 
   export const initialStaff: Staff[] = [
-    { id: 1, name: 'Dr. Sarah Mitchell', role: 'Medical Director', phone: '614-111-2222', email: 'sarah.m@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Medical' },
-    { id: 2, name: 'John Caregiver', role: 'Senior Caregiver', phone: '614-222-3333', email: 'john.c@carecloud.com', status: 'Active', schedule: 'Mon-Fri', department: 'Care' },
-    { id: 3, name: 'Lisa Nurse', role: 'Registered Nurse', phone: '614-333-4444', email: 'lisa.n@carecloud.com', status: 'Active', schedule: 'Tue-Sat', department: 'Medical' },
-    { id: 4, name: 'David Smith', role: 'Caregiver', phone: '614-444-5555', email: 'david.s@carecloud.com', status: 'Inactive', schedule: 'Flexible', department: 'Care' },
+    { id: 1, name: 'Dr. Sarah Mitchell', role: 'Medical Director', phone: '614-111-2222', email: 'sarah.m@carecloud.com', emergencyContactName: 'Mark Mitchell', emergencyContactPhone: '614-111-2223', status: 'Active', schedule: 'Mon-Fri', department: 'Medical' },
+    { id: 2, name: 'John Caregiver', role: 'Senior Caregiver', phone: '614-222-3333', email: 'john.c@carecloud.com', emergencyContactName: 'Jane Caregiver', emergencyContactPhone: '614-222-3334', status: 'Active', schedule: 'Mon-Fri', department: 'Care' },
+    { id: 3, name: 'Lisa Nurse', role: 'Registered Nurse', phone: '614-333-4444', email: 'lisa.n@carecloud.com', emergencyContactName: 'Tom Nurse', emergencyContactPhone: '614-333-4445', status: 'Active', schedule: 'Tue-Sat', department: 'Medical' },
+    { id: 4, name: 'David Smith', role: 'Caregiver', phone: '614-444-5555', email: 'david.s@carecloud.com', emergencyContactName: 'Mary Smith', emergencyContactPhone: '614-444-5556', status: 'Inactive', schedule: 'Flexible', department: 'Care' },
   ];
 
   export const initialStaffCredentials: StaffCredential[] = [

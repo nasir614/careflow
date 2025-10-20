@@ -24,6 +24,8 @@ export type Staff = {
   role: string;
   phone: string;
   email: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
   status: 'Active' | 'Inactive';
   schedule: string;
   department: 'Medical' | 'Care' | 'Administration';
