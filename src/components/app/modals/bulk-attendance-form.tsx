@@ -29,10 +29,10 @@ const months = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 
-export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
+export default function BulkAttendanceForm({ onSubmit, onCancel, isLoading }: {
   onSubmit: (data: BulkAttendanceData) => void;
-  isLoading: boolean;
   onCancel: () => void;
+  isLoading: boolean;
 }) {
   const { clients, staff } = useCareFlow();
   
@@ -100,7 +100,8 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string | boolean) => {
     const newLogs = [...dailyLogs];
-    (newLogs[index] as any)[field] = value;
+    const logToUpdate = { ...newLogs[index], [field]: value };
+    newLogs[index] = logToUpdate;
     setDailyLogs(newLogs);
   };
   
@@ -128,7 +129,7 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: {
       return;
     }
 
-    const logsToSubmit = dailyLogs.filter(log => log.date && log.status !== 'absent');
+    const logsToSubmit = dailyLogs.filter(log => log.date && log.status);
     
     const data: BulkAttendanceData = {
       clientIds: [selectedClient.id],
