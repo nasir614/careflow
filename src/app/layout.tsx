@@ -3,6 +3,7 @@ import { Inter, Manrope } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { CareFlowProvider } from '@/contexts/CareFlowContext';
+import { FirebaseProvider } from '@/firebase/provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,10 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${manrope.variable}`}>
       <body className="font-sans bg-background text-foreground">
-        <CareFlowProvider>
-          {children}
-          <Toaster />
-        </CareFlowProvider>
+        <FirebaseProvider>
+          <CareFlowProvider>
+            {children}
+            <Toaster />
+          </CareFlowProvider>
+        </FirebaseProvider>
       </body>
     </html>
   );
