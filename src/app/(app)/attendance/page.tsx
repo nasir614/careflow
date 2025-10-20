@@ -92,12 +92,12 @@ const columns: ColumnDef<EnrichedAttendance>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <Badge className={cn('border-0', getStatusBadgeVariant(row.status))}>{row.status}</Badge>,
+    cell: (row) => <span className={cn('badge', getStatusBadgeVariant(row.status))}>{row.status}</span>,
   },
   {
     accessorKey: 'adminStatus',
     header: 'Admin Status',
-    cell: (row) => <Badge className={cn('border-0', getAdminStatusBadgeVariant(row.adminStatus))}>{row.adminStatus}</Badge>,
+    cell: (row) => <span className={cn('badge', getAdminStatusBadgeVariant(row.adminStatus))}>{row.adminStatus}</span>,
   },
   {
     accessorKey: 'actions',
