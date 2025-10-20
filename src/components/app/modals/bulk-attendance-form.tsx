@@ -50,10 +50,10 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
 
   useEffect(() => {
     if (!selectedClientId) {
-        setDailyLogs([]);
-        return;
+      setDailyLogs([]);
+      return;
     }
-    
+
     const daysInMonth = getDaysInMonth(new Date(currentYear, currentMonth));
     const newLogs: DailyLog[] = [];
 
@@ -67,44 +67,40 @@ export default function BulkAttendanceForm({ onSubmit, isLoading, onCancel }: Bu
       );
 
       if (existingLog) {
-         newLogs.push({
-            date: dateString,
-            status: existingLog.status,
-            checkInAM: existingLog.checkInAM || '',
-            checkOutAM: existingLog.checkOutAM || '',
-            checkInPM: existingLog.checkInPM || '',
-            checkOutPM: existingLog.checkOutPM || '',
-notes: existingLog.notes || '',
+        newLogs.push({
+          date: dateString,
+          status: existingLog.status,
+          checkInAM: existingLog.checkInAM || '',
+          checkOutAM: existingLog.checkOutAM || '',
+          checkInPM: existingLog.checkInPM || '',
+          checkOutPM: existingLog.checkOutPM || '',
+          notes: existingLog.notes || '',
         });
       } else {
         newLogs.push({
-            date: dateString,
-            status: 'present',
-            checkInAM: '',
-            checkOutAM: '',
-            checkInPM: '',
-            checkOutPM: '',
-            notes: '',
+          date: dateString,
+          status: 'present',
+          checkInAM: '',
+          checkOutAM: '',
+          checkInPM: '',
+          checkOutPM: '',
+          notes: '',
         });
       }
     }
-
-    setDailyLogs(prevLogs => {
-      const prevLogsMap = new Map(prevLogs.map(l => [l.date, l]));
-      const mergedLogs = newLogs.map(log => {
-        if(prevLogsMap.has(log.date)) {
-          const prevLog = prevLogsMap.get(log.date)!;
-          // If we are regenerating the month, keep user's modifications if any field is filled
-          const isModified = prevLog.status !== 'present' || prevLog.checkInAM || prevLog.checkOutAM || prevLog.checkInPM || prevLog.checkOutPM || prevLog.notes;
-          return isModified ? prevLog : log;
-        }
-        return log;
-      });
-      const customDates = prevLogs.filter(l => !newLogs.some(nl => nl.date === l.date));
-      const finalLogs = [...mergedLogs, ...customDates];
-      finalLogs.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      return finalLogs;
+    
+    // Preserve user modifications on month/year change
+    const prevLogsMap = new Map(dailyLogs.map(l => [l.date, l]));
+    const mergedLogs = newLogs.map(log => {
+      if(prevLogsMap.has(log.date)) {
+        const prevLog = prevLogsMap.get(log.date)!;
+        const isModified = prevLog.status !== 'present' || prevLog.checkInAM || prevLog.checkOutAM || prevLog.checkInPM || prevLog.checkOutPM || prevLog.notes;
+        return isModified ? prevLog : log;
+      }
+      return log;
     });
+
+    setDailyLogs(mergedLogs);
 
   }, [selectedClientId, currentMonth, currentYear, attendance]);
 
@@ -117,7 +113,6 @@ notes: existingLog.notes || '',
 
   const addCustomDate = (date: Date | undefined) => {
     if (!date) return;
-    // Adjust for timezone offset
     const adjustedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
     const dateString = format(adjustedDate, 'yyyy-MM-dd');
     if (dailyLogs.some(log => log.date === dateString)) return;

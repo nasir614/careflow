@@ -139,14 +139,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       transportation.forEach(trans => {
         const alreadyBilled = billing.some(b => b.sourceLogId === `trans-${trans.id}`);
         if (trans.status === 'Completed' && !alreadyBilled) {
-            const client = clients.find(c => `${c.firstName} ${c.lastName}` === trans.client);
+            const client = clients.find(c => c.id === trans.clientId);
             const rate = SERVICE_RATES['Transportation'] || 0;
             if(client && rate > 0) {
               newInvoices.push({
                 id: Date.now() + generatedCount,
                 invoiceNo: `INV-${Date.now().toString().slice(-6) + generatedCount}`,
                 clientId: client.id,
-                clientName: trans.client,
+                clientName: `${client.firstName} ${client.lastName}`,
                 scheduleId: 0, // No direct schedule link for transportation
                 serviceDate: trans.date,
                 serviceType: 'Transportation',
@@ -175,71 +175,77 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleBulkAddAttendance = (data: any) => {
-    const { client, staff, serviceType, billingCode, logs } = data;
-    let createdCount = 0;
-    let updatedCount = 0;
+    setIsLoading(true);
+    setTimeout(() => {
+      const { client, staff, serviceType, billingCode, logs } = data;
+      let createdCount = 0;
+      let updatedCount = 0;
 
-    const newAttendanceLogs: Attendance[] = [];
-    const updatedAttendanceLogs = new Map<number, Attendance>();
+      const newAttendanceLogs: Attendance[] = [];
+      const updatedAttendanceLogs = new Map<number, Attendance>();
 
-    logs.forEach((log: any) => {
-      if (log.status !== 'present' || !log.checkInAM || !log.checkOutAM) {
-          // You might want to handle absent/excused logs differently or just skip.
-          // For now, we will create/update them to store the status and notes
-      }
-      const calculateHours = (timeInStr: string, timeOutStr: string) => {
-        if (!timeInStr || !timeOutStr) return 0;
-        const timeIn = parse(timeInStr, 'HH:mm', new Date());
-        const timeOut = parse(timeOutStr, 'HH:mm', new Date());
-        if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
-            return differenceInMinutes(timeOut, timeIn) / 60;
-        }
-        return 0;
-      };
+      logs.forEach((log: any) => {
+          if (log.status !== 'present' && !log.notes) {
+              return; // Skip if absent/excused without notes, or present without times
+          }
+          if (log.status === 'present' && (!log.checkInAM || !log.checkOutAM)) {
+              return;
+          }
 
-      const totalHours = calculateHours(log.checkInAM, log.checkOutAM) + calculateHours(log.checkInPM, log.checkOutPM);
-      
-      const existingLog = attendance.find(a => 
-        a.clientId === client.id && 
-        format(new Date(a.date + 'T00:00:00'), 'yyyy-MM-dd') === log.date
-      );
-      
-      const attendanceEntry: Omit<Attendance, 'id'> = {
-        clientId: client.id,
-        clientName: `${client.firstName} ${client.lastName}`,
-        staffId: staff.id,
-        staffName: staff.name,
-        serviceType: serviceType,
-        date: log.date,
-        checkInAM: log.checkInAM,
-        checkOutAM: log.checkOutAM,
-        checkInPM: log.checkInPM,
-        checkOutPM: log.checkOutPM,
-        totalHours: totalHours,
-        location: 'Daycare Center',
-        billingCode: billingCode,
-        status: log.status,
-        notes: log.notes,
-        createdAt: new Date().toISOString(),
-      };
+          const calculateHours = (timeInStr: string, timeOutStr: string) => {
+            if (!timeInStr || !timeOutStr) return 0;
+            const timeIn = parse(timeInStr, 'HH:mm', new Date());
+            const timeOut = parse(timeOutStr, 'HH:mm', new Date());
+            if (isValid(timeIn) && isValid(timeOut) && timeOut > timeIn) {
+                return differenceInMinutes(timeOut, timeIn) / 60;
+            }
+            return 0;
+          };
 
-      if (existingLog) {
-          updatedAttendanceLogs.set(existingLog.id, { ...existingLog, ...attendanceEntry, id: existingLog.id });
-          updatedCount++;
-      } else {
-          newAttendanceLogs.push({ ...attendanceEntry, id: Date.now() + createdCount });
-          createdCount++;
-      }
-    });
+          const totalHours = calculateHours(log.checkInAM, log.checkOutAM) + calculateHours(log.checkInPM, log.checkOutPM);
+          
+          const existingLog = attendance.find(a => 
+            a.clientId === client.id && 
+            format(new Date(a.date + 'T00:00:00'), 'yyyy-MM-dd') === log.date
+          );
+          
+          const attendanceEntry: Omit<Attendance, 'id'> = {
+            clientId: client.id,
+            clientName: `${client.firstName} ${client.lastName}`,
+            staffId: staff.id,
+            staffName: staff.name,
+            serviceType: serviceType,
+            date: log.date,
+            checkInAM: log.checkInAM,
+            checkOutAM: log.checkOutAM,
+            checkInPM: log.checkInPM,
+            checkOutPM: log.checkOutPM,
+            totalHours: totalHours,
+            location: 'Daycare Center',
+            billingCode: billingCode,
+            status: log.status,
+            notes: log.notes,
+            createdAt: new Date().toISOString(),
+          };
 
-    setAttendance(prev => {
-        const updatedPrev = prev.map(p => updatedAttendanceLogs.has(p.id) ? updatedAttendanceLogs.get(p.id)! : p);
-        return [...updatedPrev, ...newAttendanceLogs];
-    });
+          if (existingLog) {
+              updatedAttendanceLogs.set(existingLog.id, { ...existingLog, ...attendanceEntry, id: existingLog.id });
+              updatedCount++;
+          } else {
+              newAttendanceLogs.push({ ...attendanceEntry, id: Date.now() + createdCount });
+              createdCount++;
+          }
+      });
 
-    toast({ title: 'Attendance Processed', description: `${createdCount} logs created, ${updatedCount} logs updated.` });
-    closeModal();
-    setIsLoading(false);
+      setAttendance(prev => {
+          const updatedPrev = prev.map(p => updatedAttendanceLogs.has(p.id) ? updatedAttendanceLogs.get(p.id)! : p);
+          return [...updatedPrev, ...newAttendanceLogs];
+      });
+
+      toast({ title: 'Attendance Processed', description: `${createdCount} logs created, ${updatedCount} logs updated.` });
+      closeModal();
+      setIsLoading(false);
+    }, 800);
   };
 
 
@@ -247,7 +253,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
 
     if(module === 'attendance' && (item as any)?.bulk) {
-      setTimeout(() => handleBulkAddAttendance(data), 800);
+      handleBulkAddAttendance(data);
       return;
     }
     
@@ -280,11 +286,46 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         switch(module) {
           case 'clients': setClients(prev => [...prev, { ...newItem, createdAt: new Date().toISOString().slice(0, 10) }]); break;
           case 'staff': setStaff(prev => [...prev, newItem]); break;
-          case 'schedules': setSchedules(prev => [...prev, { ...newItem, usedUnits: 0, createdAt: new Date().toISOString().slice(0, 10) }]); break;
-          case 'staffCredentials': setStaffCredentials(prev => [...prev, newItem]); break;
-          case 'servicePlans': setServicePlans(prev => [...prev, newItem]); break;
-          case 'carePlans': setCarePlans(prev => [...prev, newItem]); break;
-          case 'authorizations': setAuthorizations(prev => [...prev, newItem]); break;
+          case 'schedules': 
+             newItem = { 
+               ...newItem, 
+               clientName: findClientName(newItem.clientId),
+               staffName: findStaffName(newItem.staffId),
+               usedUnits: 0, 
+               createdAt: new Date().toISOString().slice(0, 10) 
+             };
+            setSchedules(prev => [...prev, newItem]); 
+            break;
+          case 'staffCredentials': 
+            newItem = {
+              ...newItem,
+              staffName: findStaffName(newItem.staffId),
+            }
+            setStaffCredentials(prev => [...prev, newItem]); 
+            break;
+          case 'servicePlans':
+            newItem = {
+              ...newItem,
+              clientName: findClientName(newItem.clientId),
+            } 
+            setServicePlans(prev => [...prev, newItem]); 
+            break;
+          case 'carePlans':
+             newItem = {
+              ...newItem,
+              clientName: findClientName(newItem.clientId),
+              assignedStaff: findStaffName(newItem.assignedStaffId)
+            }
+            setCarePlans(prev => [...prev, newItem]); 
+            break;
+          case 'authorizations': 
+             newItem = {
+              ...newItem,
+              clientName: findClientName(newItem.clientId),
+              // servicePlan name should be looked up
+            }
+            setAuthorizations(prev => [...prev, newItem]); 
+            break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
             newItem = {
@@ -296,10 +337,10 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setBilling(prev => [...prev, newItem]); 
             break;
           case 'transportation': 
-            const transClient = clients.find(c => `${c.firstName} ${c.lastName}` === data.client);
+            const transClient = clients.find(c => c.id === data.clientId);
             newItem = {
               ...newItem,
-              clientId: transClient ? transClient.id : 0,
+              client: transClient ? `${transClient.firstName} ${transClient.lastName}` : 'Unknown',
             };
             setTransportation(prev => [...prev, newItem]); 
             break;
@@ -330,11 +371,42 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         switch(module) {
           case 'clients': setClients(prev => prev.map(c => c.id === item.id ? updatedItem as Client : c)); break;
           case 'staff': setStaff(prev => prev.map(s => s.id === item.id ? updatedItem as Staff : s)); break;
-          case 'schedules': setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
-          case 'staffCredentials': setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); break;
-          case 'servicePlans': setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p)); break;
-          case 'carePlans': setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); break;
-          case 'authorizations': setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); break;
+          case 'schedules': 
+             updatedItem = { 
+               ...updatedItem,
+               clientName: findClientName(updatedItem.clientId),
+               staffName: findStaffName(updatedItem.staffId),
+             };
+            setSchedules(prev => prev.map(s => s.id === item.id ? updatedItem as Schedule : s)); break;
+          case 'staffCredentials':
+             updatedItem = {
+              ...updatedItem,
+              staffName: findStaffName(updatedItem.staffId),
+            }
+            setStaffCredentials(prev => prev.map(s => s.id === item.id ? updatedItem as StaffCredential : s)); 
+            break;
+          case 'servicePlans':
+            updatedItem = {
+              ...updatedItem,
+              clientName: findClientName(updatedItem.clientId),
+            } 
+            setServicePlans(prev => prev.map(p => p.id === item.id ? updatedItem as ServicePlan : p)); 
+            break;
+          case 'carePlans': 
+            updatedItem = {
+              ...updatedItem,
+              clientName: findClientName(updatedItem.clientId),
+              assignedStaff: findStaffName(updatedItem.assignedStaffId)
+            }
+            setCarePlans(prev => prev.map(p => p.id === item.id ? updatedItem as CarePlan : p)); 
+            break;
+          case 'authorizations': 
+             updatedItem = {
+              ...updatedItem,
+              clientName: findClientName(updatedItem.clientId),
+            }
+            setAuthorizations(prev => prev.map(a => a.id === item.id ? updatedItem as Authorization : a)); 
+            break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
           case 'billing': 
              updatedItem = {
@@ -345,12 +417,13 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
             break;
           case 'transportation': 
-            const transClient = clients.find(c => `${c.firstName} ${c.lastName}` === data.client);
+            const transClient = clients.find(c => c.id === data.clientId);
             updatedItem = {
               ...updatedItem,
-              clientId: transClient ? transClient.id : 0,
+              client: transClient ? `${transClient.firstName} ${transClient.lastName}` : 'Unknown',
             };
-            setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
+            setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); 
+            break;
           case 'attendance':
              const calculateHours = (timeInStr: string, timeOutStr: string) => {
                 if (!timeInStr || !timeOutStr) return 0;

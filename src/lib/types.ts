@@ -73,6 +73,7 @@ export type Attendance = {
 
 export type Compliance = {
   id: number;
+  clientId: number;
   client: string;
   type: 'Authorization' | 'Document' | 'Certification';
   item: string;

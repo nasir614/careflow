@@ -8,7 +8,6 @@ import { Pagination } from '@/components/app/pagination';
 import type { Attendance } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon, Clock, Filter, ListOrdered, PlusCircle, X } from 'lucide-react';
 import { format, subMonths } from 'date-fns';
@@ -60,7 +59,7 @@ const columns: ColumnDef<Attendance>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={cn('badge', getStatusBadgeVariant(row.status))}>{row.status}</span>,
+    cell: (row) => <Badge className={cn('border-0', getStatusBadgeVariant(row.status))}>{row.status}</Badge>,
   },
   {
     accessorKey: 'actions',
