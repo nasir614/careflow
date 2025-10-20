@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export interface ColumnDef<T> {
   accessorKey: keyof T | 'actions';
@@ -14,9 +15,9 @@ export interface ColumnDef<T> {
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
-  onView: (row: T) => void;
-  onEdit: (row: T) => void;
-  onDelete: (row: T) => void;
+  onView?: (row: T) => void;
+  onEdit?: (row: T) => void;
+  onDelete?: (row: T) => void;
 }
 
 export function DataTable<T extends { id: any }>({
@@ -28,7 +29,7 @@ export function DataTable<T extends { id: any }>({
 }: DataTableProps<T>) {
 
   return (
-    <div className="rounded-lg border bg-card">
+    <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -52,18 +53,18 @@ export function DataTable<T extends { id: any }>({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onView(row)}>
+                          {onView && <DropdownMenuItem onClick={() => onView(row)}>
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(row)}>
+                          </DropdownMenuItem>}
+                          {onEdit && <DropdownMenuItem onClick={() => onEdit(row)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDelete(row)} className="text-destructive focus:text-destructive">
+                          </DropdownMenuItem>}
+                          {onDelete && <DropdownMenuItem onClick={() => onDelete(row)} className="text-destructive focus:text-destructive">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
@@ -82,6 +83,7 @@ export function DataTable<T extends { id: any }>({
           )}
         </TableBody>
       </Table>
-    </div>
+       <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   )
 }

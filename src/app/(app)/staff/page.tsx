@@ -8,13 +8,14 @@ import { Pagination } from '@/components/app/pagination';
 import type { Staff, Schedule, StaffCredential } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarRange, ShieldCheck, ShieldAlert, User, Phone, Mail, Briefcase, Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarRange, ShieldCheck, Phone, Mail, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const scheduleColumns: ColumnDef<Schedule>[] = [
   {
@@ -40,7 +41,7 @@ const scheduleColumns: ColumnDef<Schedule>[] = [
   {
     accessorKey: 'startDate',
     header: 'Period',
-    cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate} → {row.endDate}</div>,
+    cell: (row) => <div className="text-xs min-w-[150px]">{row.startDate} → {row.endDate}</div>,
   },
   {
     accessorKey: 'hoursPerDay',
@@ -50,7 +51,7 @@ const scheduleColumns: ColumnDef<Schedule>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={`badge ${row.status === 'active' ? 'badge-success' : row.status === 'expired' ? 'badge-danger' : 'badge-warning'}`}>{row.status}</span>,
+    cell: (row) => <Badge variant={row.status === 'active' ? 'default' : row.status === 'expired' ? 'destructive' : 'secondary'} className={cn(row.status === 'active' ? 'bg-green-100 text-green-700' : row.status === 'expired' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700', 'border-0')}>{row.status}</Badge>,
   },
   {
     accessorKey: 'actions',
@@ -73,7 +74,7 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
       accessorKey: 'credential',
       header: 'Credential/Document',
       cell: (row) => (
-        <div>
+        <div className="min-w-[150px]">
           <div className="font-medium">{row.credential}</div>
           <div className="text-xs text-muted-foreground">{row.training || 'N/A'}</div>
         </div>
@@ -89,18 +90,18 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
       header: 'Status',
       cell: (row) => {
         const status = getCredentialStatus(row.expirationDate);
-        return <span className={cn('badge', status.className)}>{status.label}</span>;
+        return <Badge className={cn(status.className, 'border-0')}>{status.label}</Badge>;
       },
     },
     {
         accessorKey: 'isCritical',
         header: 'Critical',
-        cell: (row) => row.isCritical ? <ShieldAlert className="w-5 h-5 text-destructive" /> : null,
+        cell: (row) => row.isCritical ? 'Yes' : 'No',
     },
     {
       accessorKey: 'actionTaken',
       header: 'Notes',
-      cell: (row) => row.actionTaken || '-',
+      cell: (row) => <span className="text-xs italic">{row.actionTaken || '-'}</span>,
     },
     {
       accessorKey: 'actions',
@@ -108,8 +109,6 @@ const credentialColumns: ColumnDef<StaffCredential>[] = [
       cell: () => null,
     },
 ];
-
-const ITEMS_PER_PAGE = 5;
 
 const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon: React.ElementType; }> = ({ label, value, icon: Icon }) => (
     <div>
@@ -123,7 +122,6 @@ const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon: React.El
 export default function StaffPage() {
   const { staff, schedules, staffCredentials, openModal } = useCareFlow();
   
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(staff[0] || null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -139,11 +137,6 @@ export default function StaffPage() {
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [staff, searchTerm, roleFilter, statusFilter]);
-
-  const paginatedStaff = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredStaff.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredStaff, currentPage]);
 
   const staffSchedules = useMemo(() => {
     if (!selectedStaff) return [];
@@ -179,153 +172,145 @@ export default function StaffPage() {
         </Button>
       </PageHeader>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-4">
-            <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                    <CardTitle>Staff Directory</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className='space-y-4'>
-                        <Input 
-                            placeholder="Search staff..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <div className="flex gap-2">
-                           <Select value={roleFilter} onValueChange={setRoleFilter}>
-                             <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="all">All Roles</SelectItem>
-                               {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                             </SelectContent>
-                           </Select>
-                           <Select value={statusFilter} onValueChange={setStatusFilter}>
-                             <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="all">All Statuses</SelectItem>
-                               <SelectItem value="Active">Active</SelectItem>
-                               <SelectItem value="Inactive">Inactive</SelectItem>
-                             </SelectContent>
-                           </Select>
-                        </div>
+      {selectedStaff ? (
+        <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+                <div className="flex items-start gap-4">
+                    <Avatar className="w-16 h-16 border-2 border-primary/20">
+                        <AvatarImage src={getStaffAvatar(selectedStaff.id)} alt={selectedStaff.name} />
+                        <AvatarFallback className="text-2xl">{selectedStaff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                        <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
+                        <p className="text-muted-foreground">{selectedStaff.role}</p>
                     </div>
-                    <div className="space-y-2 mt-4">
-                        {paginatedStaff.map(s => (
-                            <div 
-                                key={s.id} 
-                                onClick={() => setSelectedStaff(s)}
-                                className={cn(
-                                    "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
-                                    selectedStaff?.id === s.id ? "bg-primary/10" : "hover:bg-muted"
-                                )}
-                            >
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={getStaffAvatar(s.id)} alt={s.name} />
-                                    <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <div className="font-medium text-sm">{s.name}</div>
-                                    <div className="text-xs text-muted-foreground">{s.role}</div>
-                                </div>
-                                <span className={`ml-auto text-xs font-semibold px-2 py-1 rounded-full ${s.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{s.status}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                   {filteredStaff.length > ITEMS_PER_PAGE && (
-                     <Pagination
-                        currentPage={currentPage}
-                        totalItems={filteredStaff.length}
-                        itemsPerPage={ITEMS_PER_PAGE}
-                        onPageChange={setCurrentPage}
-                    />
-                   )}
-                </CardContent>
-            </Card>
+                     <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="border-t pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
+                    <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
+                    <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
+                </div>
+            </CardContent>
+        </Card>
+      ) : (
+         <div className="flex items-center justify-center h-48 bg-card rounded-2xl border border-dashed">
+            <p className="text-muted-foreground">Select a staff member to see their details.</p>
         </div>
+      )}
 
-        <div className="lg:col-span-2 space-y-6">
-          {selectedStaff ? (
-            <>
-              <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                      <div className="flex items-start gap-4">
-                          <Avatar className="w-16 h-16 border-2 border-primary/20">
-                              <AvatarImage src={getStaffAvatar(selectedStaff.id)} alt={selectedStaff.name} />
-                              <AvatarFallback className="text-2xl">{selectedStaff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                              <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
-                              <p className="text-muted-foreground">{selectedStaff.role}</p>
+      <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+              <CardTitle>Staff Directory</CardTitle>
+              <div className='space-y-2 pt-4'>
+                  <Input 
+                      placeholder="Search staff..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                     <Select value={roleFilter} onValueChange={setRoleFilter}>
+                       <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all">All Roles</SelectItem>
+                         {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                       </SelectContent>
+                     </Select>
+                     <Select value={statusFilter} onValueChange={setStatusFilter}>
+                       <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all">All Statuses</SelectItem>
+                         <SelectItem value="Active">Active</SelectItem>
+                         <SelectItem value="Inactive">Inactive</SelectItem>
+                       </SelectContent>
+                     </Select>
+                  </div>
+              </div>
+          </CardHeader>
+          <CardContent>
+              <ScrollArea className="w-full whitespace-nowrap">
+                  <div className="flex space-x-4 pb-4">
+                      {filteredStaff.map(s => (
+                          <div 
+                              key={s.id} 
+                              onClick={() => setSelectedStaff(s)}
+                              className={cn(
+                                  "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
+                                  selectedStaff?.id === s.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-muted"
+                              )}
+                          >
+                              <Avatar className="h-12 w-12">
+                                  <AvatarImage src={getStaffAvatar(s.id)} alt={s.name} />
+                                  <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                              </Avatar>
+                              <div className='text-center'>
+                                  <div className="font-medium text-sm truncate w-full">{s.name}</div>
+                                  <div className="text-xs text-muted-foreground truncate w-full">{s.role}</div>
+                              </div>
                           </div>
-                           <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
-                      </div>
-                  </CardHeader>
-                  <CardContent className="border-t pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <InfoItem label="Email" value={selectedStaff.email} icon={Mail} />
-                          <InfoItem label="Phone" value={selectedStaff.phone} icon={Phone} />
-                          <InfoItem label="Department" value={selectedStaff.department} icon={Briefcase} />
-                      </div>
-                  </CardContent>
-              </Card>
+                      ))}
+                      {filteredStaff.length === 0 && (
+                        <div className="w-full text-center py-4">No staff members found.</div>
+                      )}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+          </CardContent>
+      </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-lg">
-                    <div className="flex items-center gap-2">
-                        <CalendarRange className="w-5 h-5 text-primary" />
-                        Schedules for {selectedStaff.name}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => openModal('add', 'schedules')}>
-                        + Add Schedule
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DataTable
-                    columns={scheduleColumns}
-                    data={staffSchedules}
-                    onView={(row) => openModal('view', 'schedules', row)}
-                    onEdit={(row) => openModal('edit', 'schedules', row)}
-                    onDelete={(row) => openModal('delete', 'schedules', row)}
-                  />
-                </CardContent>
-              </Card>
+      {selectedStaff && (
+        <>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center gap-2">
+                    <CalendarRange className="w-5 h-5 text-primary" />
+                    Schedules for {selectedStaff.name}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => openModal('add', 'schedules')}>
+                    + Add Schedule
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={scheduleColumns}
+                data={staffSchedules}
+                onView={(row) => openModal('view', 'schedules', row)}
+                onEdit={(row) => openModal('edit', 'schedules', row)}
+                onDelete={(row) => openModal('delete', 'schedules', row)}
+              />
+            </CardContent>
+          </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-lg">
-                     <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-primary" />
-                        Credentials & Training for {selectedStaff.name}
-                     </div>
-                     <div className="flex items-center gap-3 text-sm">
-                        <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
-                        <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
-                        <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
-                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DataTable
-                    columns={credentialColumns}
-                    data={selectedStaffCredentials}
-                    onView={(row) => openModal('view', 'staffCredentials', row)}
-                    onEdit={(row) => openModal('edit', 'staffCredentials', row)}
-                    onDelete={(row) => openModal('delete', 'staffCredentials', row)}
-                  />
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-             <div className="flex items-center justify-center h-full bg-card rounded-2xl border border-dashed">
-                <p className="text-muted-foreground">Select a staff member to see their details.</p>
-            </div>
-          )}
-        </div>
-      </div>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-lg">
+                 <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                    Credentials & Training for {selectedStaff.name}
+                 </div>
+                 <div className="flex items-center gap-3 text-sm">
+                    <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
+                    <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
+                    <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
+                 </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={credentialColumns}
+                data={selectedStaffCredentials}
+                onView={(row) => openModal('view', 'staffCredentials', row)}
+                onEdit={(row) => openModal('edit', 'staffCredentials', row)}
+                onDelete={(row) => openModal('delete', 'staffCredentials', row)}
+              />
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
