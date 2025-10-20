@@ -125,6 +125,10 @@ export type Schedule = {
   startDate: string;
   endDate: string;
   days: string[];
+  timeInAM?: string;
+  timeOutAM?: string;
+  timeInPM?: string;
+  timeOutPM?: string;
   status: 'active' | 'expired' | 'pending';
   createdAt: string;
 };

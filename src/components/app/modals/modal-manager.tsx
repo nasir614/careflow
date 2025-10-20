@@ -8,7 +8,6 @@ import ViewClientModal from './view-client-modal';
 import DeleteModal from './delete-modal';
 import { Schedule, Client, AnyData } from '@/lib/types';
 import ScheduleForm from './schedule-form';
-import ViewScheduleModal from './view-schedule-modal';
 import GenericForm from './generic-form';
 import GenericViewModal from './generic-view-modal';
 import BulkAttendanceForm from './bulk-attendance-form';
@@ -57,9 +56,6 @@ export function ModalManager() {
         if (activeModule === 'clients' && selectedItem) {
           return <ViewClientModal client={selectedItem as Client} />;
         }
-        if (activeModule === 'schedules' && selectedItem) {
-          return <ViewScheduleModal schedule={selectedItem as Schedule} />;
-        }
         if (selectedItem) {
            return <GenericViewModal item={selectedItem} module={activeModule} />;
         }
@@ -78,8 +74,8 @@ export function ModalManager() {
     }
   };
   
-  const isLargeModal = (modalType === 'view' && (activeModule === 'clients' || activeModule === 'schedules')) || 
-    (['add', 'edit'].includes(modalType) && ['clients', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations', 'attendance'].includes(activeModule)) ||
+  const isLargeModal = (modalType === 'view' && activeModule === 'clients') || 
+    (['add', 'edit'].includes(modalType) && ['clients', 'schedules', 'staffCredentials', 'servicePlans', 'carePlans', 'authorizations', 'attendance'].includes(activeModule)) ||
     (selectedItem as AnyData & { bulk?: boolean })?.bulk;
 
   return (

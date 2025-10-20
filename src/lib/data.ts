@@ -120,6 +120,10 @@ export const initialClients: Client[] = [
       startDate: '2024-07-01',
       endDate: '2024-12-31',
       days: ['Monday', 'Wednesday', 'Friday'],
+      timeInAM: '09:00',
+      timeOutAM: '12:00',
+      timeInPM: '13:00',
+      timeOutPM: '15:30',
       status: 'active',
       createdAt: '2024-06-15'
     },
@@ -138,6 +142,8 @@ export const initialClients: Client[] = [
       startDate: '2024-05-01',
       endDate: '2024-10-31',
       days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      timeInAM: '09:00',
+      timeOutAM: '13:00',
       status: 'active',
       createdAt: '2024-04-20'
     },
@@ -156,6 +162,8 @@ export const initialClients: Client[] = [
       startDate: '2023-06-01',
       endDate: '2024-05-31',
       days: ['Monday', 'Wednesday'],
+      timeInAM: '10:00',
+      timeOutAM: '15:00',
       status: 'expired',
       createdAt: '2023-05-15'
     },
@@ -174,6 +182,8 @@ export const initialClients: Client[] = [
       startDate: '2024-01-01',
       endDate: '2024-12-31',
       days: ['Friday'],
+      timeInAM: '11:00',
+      timeOutAM: '12:00',
       status: 'active',
       createdAt: '2023-12-20'
     },

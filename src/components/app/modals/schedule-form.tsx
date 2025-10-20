@@ -61,7 +61,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1">Client</label>
-              <Select value={formData.clientId as string | undefined} onValueChange={(value) => handleSelectChange('clientId', value)} required>
+              <Select value={String(formData.clientId || '')} onValueChange={(value) => handleSelectChange('clientId', value)} required>
                 <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
                 <SelectContent>
                   {clients.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.firstName} {c.lastName}</SelectItem>)}
@@ -70,7 +70,7 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
             </div>
              <div className="relative">
               <label className="block text-sm font-medium text-muted-foreground mb-1">Assigned Staff</label>
-              <Select value={formData.staffId as string | undefined} onValueChange={(value) => handleSelectChange('staffId', value)} required>
+              <Select value={String(formData.staffId || '')} onValueChange={(value) => handleSelectChange('staffId', value)} required>
                 <SelectTrigger><SelectValue placeholder="Select Staff" /></SelectTrigger>
                 <SelectContent>
                   {staff.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
@@ -125,6 +125,26 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
              <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-1">End Date</label>
                 <Input type="date" name="endDate" value={formData.endDate || ''} onChange={handleChange} required />
+            </div>
+        </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Time In (AM)</label>
+                <Input type="time" name="timeInAM" value={formData.timeInAM || ''} onChange={handleChange} />
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Time Out (AM)</label>
+                <Input type="time" name="timeOutAM" value={formData.timeOutAM || ''} onChange={handleChange} />
+            </div>
+        </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Time In (PM)</label>
+                <Input type="time" name="timeInPM" value={formData.timeInPM || ''} onChange={handleChange} />
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Time Out (PM)</label>
+                <Input type="time" name="timeOutPM" value={formData.timeOutPM || ''} onChange={handleChange} />
             </div>
         </div>
         <div>
