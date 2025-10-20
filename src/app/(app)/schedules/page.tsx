@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Bot, CalendarDays } from 'lucide-react';
 import type { Schedule } from '@/lib/types';
-import { optimizeCaregiverRoutes } from '@/ai/flows/optimize-caregiver-routes';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -178,53 +177,9 @@ export default function SchedulesPage() {
     return pastSchedules.slice(start, start + SERVICE_PLANS_PER_PAGE);
   }, [pastSchedules, currentPlansPage]);
   
-  const handleOptimizeRoutes = async () => {
-    setIsOptimizing(true);
-    try {
-      const caregiverSchedules = JSON.stringify(schedules.map(s => ({
-        caregiverId: s.staffId,
-        clientId: s.clientId,
-        startTime: "09:00",
-        endTime: "17:00",
-      })));
-      const clientPreferences = JSON.stringify(clients.map(c => ({
-        clientId: c.id,
-        preferredCaregiver: null,
-        notes: "No specific preferences noted."
-      })));
-      const travelTimeMatrix = JSON.stringify({ "1-2": 15, "1-3": 25, "2-3": 20 });
-
-      const result = await optimizeCaregiverRoutes({
-          caregiverSchedules,
-          clientPreferences,
-          travelTimeMatrix
-      });
-
-      toast({
-          title: "AI Optimization Complete",
-          description: result.summary,
-          duration: 9000,
-      });
-
-    } catch (error) {
-      console.error("AI optimization failed:", error);
-      toast({
-          title: "AI Optimization Failed",
-          description: "Could not optimize routes at this time.",
-          variant: 'destructive',
-      });
-    } finally {
-      setIsOptimizing(false);
-    }
-  };
-
   return (
     <div className="space-y-8">
       <PageHeader title="Schedules" breadcrumbs={[{ name: 'Schedules' }]}>
-        <Button variant="outline" size="sm" onClick={handleOptimizeRoutes} disabled={isOptimizing}>
-          <Bot className="w-4 h-4 mr-2" />
-          {isOptimizing ? 'Optimizing...' : 'Optimize with AI'}
-        </Button>
       </PageHeader>
       
       <Card>

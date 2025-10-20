@@ -130,5 +130,3 @@ export type Schedule = {
 export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials';
 
 export type AnyData = Client | Staff | Schedule | Attendance | Compliance | Billing | Transportation | StaffCredential;
-
-    

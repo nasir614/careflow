@@ -11,7 +11,6 @@ import ScheduleForm from './schedule-form';
 import ViewScheduleModal from './view-schedule-modal';
 import GenericForm from './generic-form';
 import GenericViewModal from './generic-view-modal';
-import SuggestCaregiver from './suggest-caregiver';
 
 export function ModalManager() {
   const { modalOpen, closeModal, modalType, activeModule, selectedItem, handleCRUD, isLoading } = useCareFlow();
@@ -35,8 +34,6 @@ export function ModalManager() {
         case 'edit': return `Edit ${capitalizedModule}`;
         case 'view': return `View ${capitalizedModule} Details`;
         case 'delete': return `Delete ${capitalizedModule}`;
-        case 'suggest-caregiver': return 'Suggest a Caregiver';
-        case 'optimize-routes': return 'Optimized Route Suggestion';
         default: return '';
     }
   }
@@ -65,8 +62,6 @@ export function ModalManager() {
           return <ScheduleForm item={selectedItem as Schedule | null} onSubmit={(data) => handleCRUD(modalType, activeModule, data, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
         }
         return <GenericForm module={activeModule} item={selectedItem} onSubmit={(data) => handleCRUD(modalType, activeModule, data, selectedItem)} isLoading={isLoading} onCancel={closeModal} />;
-      case 'suggest-caregiver':
-        return <SuggestCaregiver />;
       default:
         return null;
     }

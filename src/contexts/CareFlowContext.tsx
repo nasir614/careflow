@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { initialClients, initialStaff, initialAttendance, initialCompliance, initialBilling, initialTransportation, initialSchedules, initialStaffCredentials } from '@/lib/data';
 import type { Client, Staff, Attendance, Compliance, Billing, Transportation, Schedule, DataModule, AnyData, StaffCredential } from '@/lib/types';
 
-type ModalType = 'add' | 'edit' | 'view' | 'delete' | 'suggest-caregiver' | 'optimize-routes' | '';
+type ModalType = 'add' | 'edit' | 'view' | 'delete' | '';
 
 interface CareFlowContextType {
   // State

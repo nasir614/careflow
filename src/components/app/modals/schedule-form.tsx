@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, Bot } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import type { Schedule } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 
@@ -16,7 +16,7 @@ interface ScheduleFormProps {
 }
 
 export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: ScheduleFormProps) {
-  const { clients, staff, openModal } = useCareFlow();
+  const { clients, staff } = useCareFlow();
   const [formData, setFormData] = useState<Partial<Schedule>>({});
 
   useEffect(() => {
@@ -86,9 +86,6 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
                   {staff.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-               <Button type="button" size="sm" variant="ghost" className="absolute -right-1 top-6 text-primary hover:text-primary" onClick={() => openModal('suggest-caregiver', 'schedules', formData)}>
-                <Bot className="w-4 h-4 mr-1" /> Suggest
-              </Button>
             </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
