@@ -25,6 +25,17 @@ const getStatusBadgeClass = (status: Schedule['status']) => {
   }
 };
 
+const dayAbbreviations: { [key: string]: string } = {
+  monday: 'M',
+  tuesday: 'T',
+  wednesday: 'W',
+  thursday: 'Th',
+  friday: 'F',
+  saturday: 'Sa',
+  sunday: 'Su',
+};
+const allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
 
 const columns: ColumnDef<Schedule>[] = [
   {
@@ -33,14 +44,37 @@ const columns: ColumnDef<Schedule>[] = [
     cell: (row) => row.clientName,
   },
   {
+    accessorKey: 'staffName',
+    header: 'Staff',
+    cell: (row) => row.staffName,
+  },
+  {
     accessorKey: 'serviceType',
     header: 'Service',
     cell: (row) => row.serviceType,
   },
   {
-    accessorKey: 'staffName',
-    header: 'Staff',
-    cell: (row) => row.staffName,
+    accessorKey: 'days',
+    header: 'Service Days',
+    cell: (row) => (
+      <div className="flex gap-1">
+        {allDays.map(day => {
+          const isScheduled = Array.isArray(row.days) && row.days.map(d => d.toLowerCase()).includes(day);
+          return (
+            <div
+              key={day}
+              className={cn(
+                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold',
+                isScheduled ? 'bg-primary/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+              )}
+              title={day.charAt(0).toUpperCase() + day.slice(1)}
+            >
+              {dayAbbreviations[day]}
+            </div>
+          );
+        })}
+      </div>
+    ),
   },
   {
     accessorKey: 'usedUnits',
@@ -48,7 +82,7 @@ const columns: ColumnDef<Schedule>[] = [
     cell: (row) => {
         const percentage = row.totalUnits > 0 ? (row.usedUnits / row.totalUnits) * 100 : 0;
         return (
-            <div>
+            <div className="min-w-[120px]">
                 <div className="text-sm font-medium text-foreground">{row.usedUnits} / {row.totalUnits}</div>
                 <Progress value={percentage} className="h-2 mt-1" />
             </div>
@@ -58,7 +92,7 @@ const columns: ColumnDef<Schedule>[] = [
    {
     accessorKey: 'startDate',
     header: 'Period',
-    cell: (row) => <div className="text-xs">{row.startDate}<br />to {row.endDate}</div>,
+    cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate}<br />to {row.endDate}</div>,
   },
   {
     accessorKey: 'status',
