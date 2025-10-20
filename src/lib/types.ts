@@ -62,12 +62,17 @@ export type Compliance = {
 export type Billing = {
   id: number;
   invoiceNo: string;
-  client: string;
+  clientId: number;
+  clientName: string;
+  scheduleId: number;
   serviceDate: string;
+  serviceType: string;
+  serviceCode: string;
   units: number;
   rate: number;
   amount: number;
-  status: 'Pending' | 'Approved' | 'Paid' | 'Denied';
+  status: 'Pending' | 'Submitted' | 'Paid' | 'Denied';
+  createdAt: string;
 };
 
 export type Transportation = {

@@ -92,9 +92,12 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
   const closeModal = () => {
     setModalOpen(false);
-    setModalType('');
-    setActiveModule(null);
-    setSelectedItem(null);
+    // A slight delay to allow the dialog to animate out
+    setTimeout(() => {
+      setModalType('');
+      setActiveModule(null);
+      setSelectedItem(null);
+    }, 200);
   };
 
   const handleCRUD = (action: 'add' | 'edit' | 'delete', module: DataModule, data: any, item: AnyData | null = null) => {
@@ -102,6 +105,11 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => { // Simulate API delay
       const singularModule = module.endsWith('s') ? module.slice(0, -1) : module;
       const capitalizedModule = singularModule.charAt(0).toUpperCase() + singularModule.slice(1);
+
+      const findClientName = (clientId: number | string) => {
+        const client = clients.find(c => String(c.id) === String(clientId));
+        return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
+      }
 
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
@@ -127,7 +135,15 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setAttendance(prev => [...prev, newItem]);
             break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
-          case 'billing': setBilling(prev => [...prev, newItem]); break;
+          case 'billing':
+            newItem = {
+              ...newItem,
+              invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
+              amount: (data.units || 0) * (data.rate || 0),
+              clientName: findClientName(newItem.clientId),
+            };
+            setBilling(prev => [...prev, newItem]); 
+            break;
           case 'transportation': setTransportation(prev => [...prev, newItem]); break;
         }
         toast({ title: "Success", description: `${capitalizedModule} added successfully!` });
@@ -149,7 +165,14 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             setAttendance(prev => prev.map(a => a.id === item.id ? updatedItem as Attendance : a)); 
             break;
           case 'compliance': setCompliance(prev => prev.map(c => c.id === item.id ? updatedItem as Compliance : c)); break;
-          case 'billing': setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); break;
+          case 'billing': 
+             updatedItem = {
+              ...updatedItem,
+              amount: (data.units || item.units) * (data.rate || item.rate),
+              clientName: findClientName(updatedItem.clientId),
+            };
+            setBilling(prev => prev.map(b => b.id === item.id ? updatedItem as Billing : b)); 
+            break;
           case 'transportation': setTransportation(prev => prev.map(t => t.id === item.id ? updatedItem as Transportation : t)); break;
         }
         toast({ title: "Success", description: `${capitalizedModule} updated successfully!` });

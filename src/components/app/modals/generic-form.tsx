@@ -66,11 +66,13 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[]): F
             ];
         case 'billing':
             return [
-                { name: 'client', label: 'Client', type: 'text', required: true },
+                { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true, className: 'md:col-span-2' },
                 { name: 'serviceDate', label: 'Service Date', type: 'date', required: true },
+                { name: 'serviceType', label: 'Service Type', type: 'text', required: true },
+                { name: 'serviceCode', label: 'Service Code', type: 'text', required: true },
                 { name: 'units', label: 'Units (hours)', type: 'number', required: true },
                 { name: 'rate', label: 'Rate ($)', type: 'number', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Pending', 'Approved', 'Paid', 'Denied'], required: true }
+                { name: 'status', label: 'Status', type: 'select', options: ['Pending', 'Submitted', 'Paid', 'Denied'], required: true }
             ];
         case 'transportation':
             return [
@@ -165,8 +167,8 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         </div>
       </div>
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
+        <Button type="submit" disabled={isLoading} className="rounded-full">
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           {item ? 'Save Changes' : `Create ${module.slice(0, -1)}`}
         </Button>

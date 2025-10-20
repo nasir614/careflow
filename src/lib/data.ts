@@ -99,9 +99,10 @@ export const initialClients: Client[] = [
   ];
 
   export const initialBilling: Billing[] = [
-    { id: 1, invoiceNo: 'INV-2025-001', client: 'John Doe', serviceDate: '2025-10-19', units: 6.5, rate: 150, amount: 975, status: 'Pending' },
-    { id: 2, invoiceNo: 'INV-2025-002', client: 'Sarah Johnson', serviceDate: '2025-10-19', units: 6.5, rate: 150, amount: 975, status: 'Approved' },
-    { id: 3, invoiceNo: 'INV-2025-003', client: 'Mike Williams', serviceDate: '2025-10-19', units: 4.75, rate: 150, amount: 712.5, status: 'Pending' },
+    { id: 1, invoiceNo: 'INV-2025-001', clientId: 1, clientName: 'John Doe', scheduleId: 1, serviceDate: '2025-10-19', serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 150, amount: 975, status: 'Pending', createdAt: '2025-10-20' },
+    { id: 2, invoiceNo: 'INV-2025-002', clientId: 2, clientName: 'Sarah Johnson', scheduleId: 2, serviceDate: '2025-10-19', serviceType: 'Personal Care', serviceCode: 'T1019', units: 6, rate: 120, amount: 720, status: 'Submitted', createdAt: '2025-10-20' },
+    { id: 3, invoiceNo: 'INV-2025-003', clientId: 3, clientName: 'Mike Williams', scheduleId: 3, serviceDate: '2025-10-19', serviceType: 'Day Support', serviceCode: 'S5150', units: 4.75, rate: 150, amount: 712.5, status: 'Paid', createdAt: '2025-10-18' },
+    { id: 4, invoiceNo: 'INV-2025-004', clientId: 1, clientName: 'John Doe', scheduleId: 1, serviceDate: '2025-10-18', serviceType: 'Adult Day Care', serviceCode: 'T2021', units: 6.5, rate: 150, amount: 975, status: 'Denied', createdAt: '2025-10-19' },
   ];
 
   export const initialTransportation: Transportation[] = [
