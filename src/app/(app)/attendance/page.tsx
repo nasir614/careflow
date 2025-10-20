@@ -13,6 +13,7 @@ import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { getWeek, getMonth, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
 
 const getStatusInfo = (status: AttendanceStatus) => {
   switch (status) {
@@ -124,13 +125,12 @@ const HISTORICAL_ITEMS_PER_PAGE = 10;
 export default function AttendancePage() {
   const { attendance, clients, staff, openModal } = useCareFlow();
   
-  // State for main table
   const [currentPage, setCurrentPage] = useState(1);
-  const [dateFilter, setDateFilter] = useState('');
+  const [filterType, setFilterType] = useState<'day' | 'week' | 'month'>('day');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [clientFilter, setClientFilter] = useState('all');
   const [staffFilter, setStaffFilter] = useState('all');
 
-  // State for historical table
   const [historicalCurrentPage, setHistoricalCurrentPage] = useState(1);
   const [historicalSearchTerm, setHistoricalSearchTerm] = useState('');
   const [historicalClientFilter, setHistoricalClientFilter] = useState('all');
@@ -139,19 +139,29 @@ export default function AttendancePage() {
   const [historicalStartDate, setHistoricalStartDate] = useState('');
   const [historicalEndDate, setHistoricalEndDate] = useState('');
 
-
   const clientOptions = useMemo(() => [...new Set(clients.map(c => `${c.firstName} ${c.lastName}`))], [clients]);
   const staffOptions = useMemo(() => [...new Set(staff.map(s => s.name))], [staff]);
   const serviceTypeOptions = useMemo(() => [...new Set(attendance.map(a => a.serviceType))], [attendance]);
 
   const filteredData = useMemo(() => {
     return attendance.filter(item => {
-      const matchesDate = !dateFilter || item.date === dateFilter;
+      const itemDate = new Date(item.date);
+      let matchesDate = false;
+
+      if (filterType === 'day') {
+        matchesDate = format(itemDate, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd');
+      } else if (filterType === 'week') {
+        matchesDate = getWeek(itemDate) === getWeek(currentDate);
+      } else if (filterType === 'month') {
+        matchesDate = getMonth(itemDate) === getMonth(currentDate) && itemDate.getFullYear() === currentDate.getFullYear();
+      }
+
       const matchesClient = clientFilter === 'all' || item.clientName === clientFilter;
       const matchesStaff = staffFilter === 'all' || item.staffName === staffFilter;
+      
       return matchesDate && matchesClient && matchesStaff;
     });
-  }, [attendance, dateFilter, clientFilter, staffFilter]);
+  }, [attendance, filterType, currentDate, clientFilter, staffFilter]);
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -189,9 +199,10 @@ export default function AttendancePage() {
   }, [filteredHistoricalData, historicalCurrentPage]);
 
   const clearFilters = () => {
-    setDateFilter('');
+    setCurrentDate(new Date());
     setClientFilter('all');
     setStaffFilter('all');
+    setFilterType('day');
   };
 
   const clearHistoricalFilters = () => {
@@ -203,6 +214,21 @@ export default function AttendancePage() {
     setHistoricalEndDate('');
     setHistoricalCurrentPage(1);
   };
+  
+  const getFilterDateLabel = () => {
+    if (filterType === 'day') {
+      return format(currentDate, 'PPPP');
+    }
+    if (filterType === 'week') {
+      const start = startOfWeek(currentDate);
+      const end = endOfWeek(currentDate);
+      return `Week of ${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    }
+    if (filterType === 'month') {
+      return format(currentDate, 'MMMM yyyy');
+    }
+    return '';
+  }
 
   return (
     <div className="space-y-6">
@@ -211,25 +237,24 @@ export default function AttendancePage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
-            <Input 
-              type="date"
-              value={dateFilter}
-              onChange={e => setDateFilter(e.target.value)}
-              className="w-full sm:max-w-xs"
-            />
+             <div className="flex items-center gap-2 border rounded-lg p-1">
+                <Button variant={filterType === 'day' ? 'soft' : 'ghost'} size="sm" onClick={() => setFilterType('day')}>Day</Button>
+                <Button variant={filterType === 'week' ? 'soft' : 'ghost'} size="sm" onClick={() => setFilterType('week')}>Week</Button>
+                <Button variant={filterType === 'month' ? 'soft' : 'ghost'} size="sm" onClick={() => setFilterType('month')}>Month</Button>
+             </div>
+             {filterType === 'day' && <Input type="date" value={format(currentDate, 'yyyy-MM-dd')} onChange={(e) => setCurrentDate(new Date(e.target.value))} className="w-full sm:max-w-xs" />}
+             {filterType === 'week' && <Input type="week" value={`${currentDate.getFullYear()}-W${getWeek(currentDate)}`} onChange={(e) => setCurrentDate(new Date(e.target.value))} className="w-full sm:max-w-xs" />}
+             {filterType === 'month' && <Input type="month" value={format(currentDate, 'yyyy-MM')} onChange={(e) => setCurrentDate(new Date(e.target.value))} className="w-full sm:max-w-xs" />}
+            
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="All Clients" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Clients" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Clients</SelectItem>
                 {clientOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={staffFilter} onValueChange={setStaffFilter}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder="All Staff" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[220px]"><SelectValue placeholder="All Staff" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Staff</SelectItem>
                 {staffOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
@@ -242,6 +267,7 @@ export default function AttendancePage() {
           </div>
         </CardHeader>
         <CardContent>
+          <p className="text-sm font-semibold text-foreground mb-4">{getFilterDateLabel()}</p>
           <DataTable
             columns={columns}
             data={paginatedData}
@@ -249,13 +275,7 @@ export default function AttendancePage() {
             onEdit={(row) => openModal('edit', 'attendance', row)}
             onDelete={(row) => openModal('delete', 'attendance', row)}
           />
-
-          <Pagination
-            currentPage={currentPage}
-            totalItems={filteredData.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination currentPage={currentPage} totalItems={filteredData.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
         </CardContent>
       </Card>
       
@@ -271,7 +291,7 @@ export default function AttendancePage() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border p-4 mb-4">
+          <div className="bg-muted/50 dark:bg-muted/20 rounded-lg border p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative md:col-span-2 lg:col-span-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -334,3 +354,5 @@ export default function AttendancePage() {
     </div>
   );
 }
+
+    
