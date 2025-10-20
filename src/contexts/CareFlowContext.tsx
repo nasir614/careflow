@@ -183,6 +183,8 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
 
       const newAttendanceLogs: Attendance[] = [];
       const updatedAttendanceLogs = new Map<number, Attendance>();
+      
+      let nextId = Math.max(...attendance.map(a => a.id), 0) + 1;
 
       logs.forEach((log: any) => {
           if (log.status !== 'present' && !log.notes) {
@@ -232,7 +234,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
               updatedAttendanceLogs.set(existingLog.id, { ...existingLog, ...attendanceEntry, id: existingLog.id });
               updatedCount++;
           } else {
-              newAttendanceLogs.push({ ...attendanceEntry, id: Date.now() + createdCount });
+              newAttendanceLogs.push({ ...attendanceEntry, id: nextId++ });
               createdCount++;
           }
       });
@@ -286,7 +288,25 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (action === 'add') {
-        let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
+        const getNextId = (items: {id: number}[]) => Math.max(0, ...items.map(i => i.id)) + 1;
+        
+        let newId;
+        switch(module) {
+            case 'clients': newId = getNextId(clients); break;
+            case 'staff': newId = getNextId(staff); break;
+            case 'schedules': newId = getNextId(schedules); break;
+            case 'staffCredentials': newId = getNextId(staffCredentials); break;
+            case 'servicePlans': newId = getNextId(servicePlans); break;
+            case 'carePlans': newId = getNextId(carePlans); break;
+            case 'authorizations': newId = getNextId(authorizations); break;
+            case 'compliance': newId = getNextId(compliance); break;
+            case 'billing': newId = getNextId(billing); break;
+            case 'transportation': newId = getNextId(transportation); break;
+            case 'attendance': newId = getNextId(attendance); break;
+            default: newId = Date.now();
+        }
+
+        let newItem: any = { id: newId, createdAt: new Date().toISOString(), ...data };
         
         // Add relational data before setting state
         if ('clientId' in newItem) newItem.clientName = findClientName(newItem.clientId);
@@ -315,7 +335,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
             break;
           case 'compliance': setCompliance(prev => [...prev, newItem]); break;
           case 'billing':
-            newItem.invoiceNo = `INV-${Date.now().toString().slice(-6)}`;
+            newItem.invoiceNo = `INV-${String(newId).slice(-6)}`;
             newItem.amount = (data.units || 0) * (data.rate || 0);
             setBilling(prev => [...prev, newItem]); 
             break;
