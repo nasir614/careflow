@@ -60,6 +60,7 @@ interface CareFlowContextType {
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<Schedule[]>>;
+  setAttendance: React.Dispatch<React.SetStateAction<Attendance[]>>;
   setStaffCredentials: React.Dispatch<React.SetStateAction<StaffCredential[]>>;
   setServicePlans: React.Dispatch<React.SetStateAction<ServicePlan[]>>;
   setCarePlans: React.Dispatch<React.SetStateAction<CarePlan[]>>;
@@ -156,7 +157,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
       let newInvoices: Billing[] = [];
       let generatedCount = 0;
 
-      // Generate from attendance logs
+      // Generate from attendance logs only for 'present' status
       attendance.forEach(att => {
           const alreadyBilled = billing.some(b => b.sourceLogId === `att-${att.id}`);
           if (att.status === 'present' && att.totalHours > 0 && !alreadyBilled) {
@@ -250,11 +251,6 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
         return staffMember ? staffMember.name : 'Unknown Staff';
       };
 
-      const findServicePlanName = (planId: number | string) => {
-          const plan = servicePlans.find(p => String(p.id) === String(planId));
-          return plan ? plan.planName : 'Unknown Plan';
-      };
-
       if (action === 'add') {
         let newItem: any = { id: Date.now(), createdAt: new Date().toISOString(), ...data };
         switch(module) {
@@ -278,6 +274,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
                   servicePlan: servicePlan ? servicePlan.planName : 'Unknown',
                   serviceType: servicePlan ? servicePlan.type : 'Unknown',
                   billingCode: servicePlan ? servicePlan.billingCode : 'Unknown',
+                  usedHours: 0,
               };
               setAuthorizations(prev => [...prev, newItem]);
               break;
@@ -404,6 +401,7 @@ export const CareFlowProvider = ({ children }: { children: ReactNode }) => {
     setClients,
     setStaff,
     setSchedules,
+    setAttendance,
     setStaffCredentials,
     setServicePlans,
     setCarePlans,

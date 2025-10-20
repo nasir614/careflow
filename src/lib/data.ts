@@ -225,16 +225,16 @@ export const initialClients: Client[] = [
   ];
 
   export const initialServicePlans: ServicePlan[] = [
-    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'Standard Day Care', type: 'Personal Care', billingCode: 'T2021', status: 'Active' },
-    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Enhanced Personal Support', type: 'Personal Care', billingCode: 'T1019', status: 'Active' },
-    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Socialization & Activities', type: 'Social', billingCode: 'S5100', status: 'Active' },
-    { id: 4, clientId: 1, clientName: 'John Doe', planName: 'Medical Monitoring', type: 'Medical', billingCode: 'T1002', status: 'Inactive' },
+    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'Standard Day Care', type: 'Personal Care', billingCode: 'T2021', status: 'Active', startDate: '2024-01-01', endDate: '2024-12-31' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Enhanced Personal Support', type: 'Personal Care', billingCode: 'T1019', status: 'Active', startDate: '2024-01-01', endDate: '2024-12-31' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Socialization & Activities', type: 'Social', billingCode: 'S5100', status: 'Active', startDate: '2024-01-01', endDate: '2024-12-31' },
+    { id: 4, clientId: 1, clientName: 'John Doe', planName: 'Medical Monitoring', type: 'Medical', billingCode: 'T1002', status: 'Inactive', startDate: '2023-01-01', endDate: '2023-12-31' },
   ];
 
   export const initialCarePlans: CarePlan[] = [
-    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'John\'s Daily Support', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'Active' },
-    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Sarah\'s Nursing Care', assignedStaffId: 3, assignedStaff: 'Lisa Nurse', status: 'Active' },
-    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Mike\'s Community Engagement', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'On-Hold' },
+    { id: 1, clientId: 1, clientName: 'John Doe', planName: 'John\'s Daily Support', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'Active', startDate: '2024-01-01', endDate: '2024-06-30', goals: 'Improve mobility and social interaction.' },
+    { id: 2, clientId: 2, clientName: 'Sarah Johnson', planName: 'Sarah\'s Nursing Care', assignedStaffId: 3, assignedStaff: 'Lisa Nurse', status: 'Active', startDate: '2024-01-01', endDate: '2024-12-31', goals: 'Manage medication and monitor vital signs.' },
+    { id: 3, clientId: 3, clientName: 'Mike Williams', planName: 'Mike\'s Community Engagement', assignedStaffId: 2, assignedStaff: 'John Caregiver', status: 'On-Hold', startDate: '2024-03-01', endDate: '2024-09-01', goals: 'Attend community events twice a week.' },
   ];
   
   export const initialAuthorizations: Authorization[] = [

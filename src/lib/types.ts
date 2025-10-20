@@ -138,7 +138,10 @@ export type ServicePlan = {
   planName: string;
   type: 'Medical' | 'Personal Care' | 'Social';
   billingCode: string;
-  status: 'Active' | 'Inactive' | 'Pending';
+  status: 'Active' | 'Inactive' | 'Pending' | 'Expired';
+  startDate: string;
+  endDate: string;
+  notes?: string;
 };
 
 export type CarePlan = {
@@ -148,7 +151,11 @@ export type CarePlan = {
   planName: string;
   assignedStaffId: number;
   assignedStaff: string;
-  status: 'Active' | 'Completed' | 'On-Hold';
+  status: 'Active' | 'Completed' | 'On-Hold' | 'Expired';
+  startDate: string;
+  endDate: string;
+  goals: string;
+  notes?: string;
 };
 
 export type Authorization = {
@@ -163,7 +170,8 @@ export type Authorization = {
   usedHours: number;
   startDate: string;
   endDate: string;
-  status: 'Active' | 'Expired' | 'Pending';
+  status: 'Active' | 'Expired' | 'Pending' | 'Renewed';
+  notes?: string;
 };
 
 export type DataModule = 'clients' | 'staff' | 'schedules' | 'attendance' | 'compliance' | 'billing' | 'transportation' | 'staffCredentials' | 'servicePlans' | 'carePlans' | 'authorizations';

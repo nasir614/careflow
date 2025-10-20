@@ -50,16 +50,23 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
             return [
                 { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
                 { name: 'planName', label: 'Plan Name', type: 'text', required: true },
-                { name: 'type', label: 'Type', type: 'select', options: ['Medical', 'Personal Care', 'Social'], required: true },
+                { name: 'type', label: 'Service Type', type: 'select', options: ['Medical', 'Personal Care', 'Social'], required: true },
                 { name: 'billingCode', label: 'Billing Code', type: 'text', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive', 'Pending'], required: true },
+                { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+                { name: 'endDate', label: 'End Date', type: 'date', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive', 'Pending', 'Expired'], required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'carePlans':
             return [
                 { name: 'clientId', label: 'Client', type: 'select', options: clientOptions, required: true },
-                { name: 'planName', label: 'Plan Name', type: 'text', required: true },
+                { name: 'planName', label: 'Care Plan Title', type: 'text', required: true },
                 { name: 'assignedStaffId', label: 'Assigned Staff', type: 'select', options: staffOptions, required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'On-Hold'], required: true },
+                { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+                { name: 'endDate', label: 'End Date', type: 'date', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'On-Hold', 'Expired'], required: true },
+                { name: 'goals', label: 'Care Goals', type: 'textarea', className: 'md:col-span-2' },
+                { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'authorizations':
             return [
@@ -68,7 +75,8 @@ const getFieldsForModule = (module: DataModule, clients: any[], staff: any[], se
                 { name: 'authorizedHours', label: 'Authorized Hours', type: 'number', required: true },
                 { name: 'startDate', label: 'Start Date', type: 'date', required: true },
                 { name: 'endDate', label: 'End Date', type: 'date', required: true },
-                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Pending'], required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Pending', 'Renewed'], required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', className: 'md:col-span-2' },
             ];
         case 'staffCredentials':
             return [
@@ -291,7 +299,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          {getModalTitle()}
+          {item ? 'Save Changes' : `Create ${getSingularModuleName(module)}`}
         </Button>
       </div>
     </form>
