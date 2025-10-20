@@ -38,27 +38,27 @@ export function Header({
   const canAdd = activeModule && activeModule !== 'dashboard' && activeModule !== 'reports';
 
   return (
-    <header className="bg-card/80 backdrop-blur-sm border-b px-6 h-16 flex items-center justify-between sticky top-0 z-10 no-print">
+    <header className="bg-transparent px-6 h-16 flex items-center justify-between sticky top-0 z-10 no-print mb-8">
         <div className="flex-1 max-w-md relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search clients, staff, schedules..."
+            placeholder="Search anything..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-background border-border rounded-lg text-sm focus:bg-background focus:border-primary/50 focus:ring-primary/50"
+            className="w-full pl-10 pr-4 py-2 bg-white/80 border-gray-200 rounded-lg text-sm focus:bg-white focus:border-primary/50 focus:ring-primary/50"
           />
         </div>
         <div className="flex items-center gap-2">
           {canAdd && (
-             <Button onClick={handleAddNew} className='rounded-full'>
+             <Button onClick={handleAddNew} className='bg-gradient-to-r from-primary to-pink-500 text-white rounded-lg shadow hover:opacity-90 transition'>
               <Plus className="w-4 h-4 mr-2" />
               Add New
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="relative rounded-full">
+          <Button variant="ghost" size="icon" className="relative rounded-full text-gray-600 hover:bg-gray-200/50">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive rounded-full border-2 border-card"></span>
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
             <span className="sr-only">Notifications</span>
           </Button>
         </div>

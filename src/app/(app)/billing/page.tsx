@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Download, X } from 'lucide-react';
 import type { Billing } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const getStatusBadgeClass = (status: Billing['status']) => {
   switch (status) {
@@ -114,47 +115,50 @@ export default function BillingPage() {
         </Button>
       </PageHeader>
       
-       <div className="bg-card rounded-2xl border p-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="All Clients" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
-              {clientOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {statusOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" onClick={clearFilters} className="text-sm">
-            <X className="w-4 h-4 mr-2" />
-            Clear Filters
-          </Button>
-        </div>
-      </div>
-      
-      <DataTable
-        columns={columns}
-        data={paginatedData}
-        onView={(row) => openModal('view', 'billing', row)}
-        onEdit={(row) => openModal('edit', 'billing', row)}
-        onDelete={(row) => openModal('delete', 'billing', row)}
-      />
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-4">
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="All Clients" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+                {clientOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statusOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" onClick={clearFilters} className="text-sm">
+              <X className="w-4 h-4 mr-2" />
+              Clear Filters
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            onView={(row) => openModal('view', 'billing', row)}
+            onEdit={(row) => openModal('edit', 'billing', row)}
+            onDelete={(row) => openModal('delete', 'billing', row)}
+          />
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={filteredData.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredData.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

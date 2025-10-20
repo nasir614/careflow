@@ -66,7 +66,7 @@ const columns: ColumnDef<Schedule>[] = [
               key={day}
               className={cn(
                 'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold',
-                isScheduled ? 'bg-primary/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                isScheduled ? 'bg-primary/20 text-primary-foreground' : 'bg-gray-100 text-gray-500'
               )}
               title={day.charAt(0).toUpperCase() + day.slice(1)}
             >
@@ -134,7 +134,7 @@ const servicePlanColumns: ColumnDef<Schedule>[] = [
           return (
             <div key={day} className="flex flex-col items-center">
               <div className="text-xs text-muted-foreground">{day.charAt(0).toUpperCase() + day.slice(1,3)}</div>
-              <div className={cn('flex h-5 w-5 mt-1 items-center justify-center rounded-sm text-xs font-bold', isScheduled ? 'bg-blue-100 text-blue-700' : 'bg-muted')}>
+              <div className={cn('flex h-5 w-5 mt-1 items-center justify-center rounded-sm text-xs font-bold', isScheduled ? 'bg-blue-100 text-blue-700' : 'bg-gray-100')}>
                 {isScheduled ? '✓' : '-'}
               </div>
             </div>
@@ -227,22 +227,24 @@ export default function SchedulesPage() {
         </Button>
       </PageHeader>
       
-      <div>
-        <DataTable
-          columns={columns}
-          data={paginatedSchedules}
-          onView={(row) => openModal('view', 'schedules', row)}
-          onEdit={(row) => openModal('edit', 'schedules', row)}
-          onDelete={(row) => openModal('delete', 'schedules', row)}
-        />
+      <Card>
+        <CardContent className="pt-6">
+          <DataTable
+            columns={columns}
+            data={paginatedSchedules}
+            onView={(row) => openModal('view', 'schedules', row)}
+            onEdit={(row) => openModal('edit', 'schedules', row)}
+            onDelete={(row) => openModal('delete', 'schedules', row)}
+          />
 
-        <Pagination
-          currentPage={currentPage}
-          totalItems={activeSchedules.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={activeSchedules.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

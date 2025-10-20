@@ -171,67 +171,67 @@ export default function StaffPage() {
         </Button>
       </PageHeader>
       
-      <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-              <CardTitle>Staff Directory</CardTitle>
-              <div className='space-y-2 pt-4'>
-                  <Input 
-                      placeholder="Search staff..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                     <Select value={roleFilter} onValueChange={setRoleFilter}>
-                       <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="all">All Roles</SelectItem>
-                         {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                       </SelectContent>
-                     </Select>
-                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                       <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="all">All Statuses</SelectItem>
-                         <SelectItem value="Active">Active</SelectItem>
-                         <SelectItem value="Inactive">Inactive</SelectItem>
-                       </SelectContent>
-                     </Select>
-                  </div>
-              </div>
-          </CardHeader>
-          <CardContent>
-              <ScrollArea className="w-full whitespace-nowrap">
-                  <div className="flex space-x-4 pb-4">
-                      {filteredStaff.map(s => (
-                          <div 
-                              key={s.id} 
-                              onClick={() => setSelectedStaff(s)}
-                              className={cn(
-                                  "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
-                                  selectedStaff?.id === s.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-muted"
-                              )}
-                          >
-                              <Avatar className="h-12 w-12">
-                                  <AvatarImage src={getStaffAvatar(s.id)} alt={s.name} />
-                                  <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
-                              <div className='text-center'>
-                                  <div className="font-medium text-sm truncate w-full">{s.name}</div>
-                                  <div className="text-xs text-muted-foreground truncate w-full">{s.role}</div>
-                              </div>
-                          </div>
-                      ))}
-                      {filteredStaff.length === 0 && (
-                        <div className="w-full text-center py-4">No staff members found.</div>
-                      )}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-          </CardContent>
+      <Card>
+        <CardHeader>
+            <CardTitle>Staff Directory</CardTitle>
+            <div className='space-y-2 pt-4'>
+                <Input 
+                    placeholder="Search staff..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="flex gap-2">
+                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger><SelectValue placeholder="All Roles" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                    </SelectContent>
+                    </Select>
+                </div>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <ScrollArea className="w-full whitespace-nowrap">
+                <div className="flex space-x-4 pb-4">
+                    {filteredStaff.map(s => (
+                        <div 
+                            key={s.id} 
+                            onClick={() => setSelectedStaff(s)}
+                            className={cn(
+                                "flex flex-col items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors w-32 shrink-0 border-2",
+                                selectedStaff?.id === s.id ? "border-primary bg-primary/10" : "border-transparent hover:bg-gray-100"
+                            )}
+                        >
+                            <Avatar className="h-12 w-12">
+                                <AvatarImage src={getStaffAvatar(s.id)} alt={s.name} />
+                                <AvatarFallback>{s.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            <div className='text-center'>
+                                <div className="font-medium text-sm truncate w-full">{s.name}</div>
+                                <div className="text-xs text-muted-foreground truncate w-full">{s.role}</div>
+                            </div>
+                        </div>
+                    ))}
+                    {filteredStaff.length === 0 && (
+                      <div className="w-full text-center py-4">No staff members found.</div>
+                    )}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+        </CardContent>
       </Card>
 
       {selectedStaff ? (
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card>
             <CardHeader>
                 <div className="flex items-start gap-4">
                     <Avatar className="w-16 h-16 border-2 border-primary/20">
@@ -242,7 +242,7 @@ export default function StaffPage() {
                         <CardTitle className="text-xl font-bold">{selectedStaff.name}</CardTitle>
                         <p className="text-muted-foreground">{selectedStaff.role}</p>
                     </div>
-                     <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
+                      <Badge variant={selectedStaff.status === 'Active' ? 'default' : 'destructive'} className={cn(selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700', 'border-0')}>{selectedStaff.status}</Badge>
                 </div>
             </CardHeader>
             <CardContent className="border-t pt-6">
@@ -255,14 +255,14 @@ export default function StaffPage() {
             </CardContent>
         </Card>
       ) : (
-         <div className="flex items-center justify-center h-48 bg-card rounded-2xl border border-dashed">
+          <div className="flex items-center justify-center h-48 bg-white rounded-2xl border border-dashed">
             <p className="text-muted-foreground">Select a staff member to see their details.</p>
         </div>
       )}
 
       {selectedStaff && (
-        <>
-          <Card className="hover:shadow-lg transition-shadow">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-lg">
                 <div className="flex items-center gap-2">
@@ -285,18 +285,18 @@ export default function StaffPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-lg">
-                 <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-primary" />
                     Credentials & Training for {selectedStaff.name}
-                 </div>
-                 <div className="flex items-center gap-3 text-sm">
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
                     <Badge variant="outline" className="text-green-700 border-green-200">{credentialSummary.active} Active</Badge>
                     <Badge variant="outline" className="text-yellow-700 border-yellow-200">{credentialSummary.expiring} Expiring</Badge>
                     <Badge variant="outline" className="text-red-700 border-red-200">{credentialSummary.expired} Expired</Badge>
-                 </div>
+                  </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -309,7 +309,7 @@ export default function StaffPage() {
               />
             </CardContent>
           </Card>
-        </>
+        </div>
       )}
     </div>
   );

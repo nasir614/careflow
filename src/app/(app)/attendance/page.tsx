@@ -184,53 +184,57 @@ export default function AttendancePage() {
     <div className="space-y-6">
       <PageHeader title="Attendance" breadcrumbs={[{ name: 'Attendance' }]} />
 
-      <div className="bg-card rounded-lg border p-4 space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <Input 
-            type="date"
-            value={dateFilter}
-            onChange={e => setDateFilter(e.target.value)}
-            className="max-w-xs"
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-4">
+            <Input 
+              type="date"
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="max-w-xs"
+            />
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Clients" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+                {clientOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={staffFilter} onValueChange={setStaffFilter}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="All Staff" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Staff</SelectItem>
+                {staffOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" onClick={clearFilters} className="text-sm">
+              <X className="w-4 h-4 mr-2" />
+              Clear Filters
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            onView={(row) => openModal('view', 'attendance', row)}
+            onEdit={(row) => openModal('edit', 'attendance', row)}
+            onDelete={(row) => openModal('delete', 'attendance', row)}
           />
-          <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Clients" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
-              {clientOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="All Staff" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Staff</SelectItem>
-              {staffOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" onClick={clearFilters} className="text-sm">
-            <X className="w-4 h-4 mr-2" />
-            Clear Filters
-          </Button>
-        </div>
-      </div>
-      
-      <DataTable
-        columns={columns}
-        data={paginatedData}
-        onView={(row) => openModal('view', 'attendance', row)}
-        onEdit={(row) => openModal('edit', 'attendance', row)}
-        onDelete={(row) => openModal('delete', 'attendance', row)}
-      />
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={filteredData.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredData.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
+      
 
       <Card>
         <CardHeader>
@@ -238,12 +242,12 @@ export default function AttendancePage() {
             <History className="w-6 h-6 text-primary" />
             Historical Attendance
           </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
+           <p className="text-sm text-muted-foreground pt-2">
             A detailed log of all attendance records. Use the filters below to search and audit historical data.
           </p>
-          <div className="bg-muted/50 rounded-lg border p-4 mb-4">
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 rounded-lg border p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative md:col-span-2 lg:col-span-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />

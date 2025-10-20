@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import type { Compliance } from '@/lib/types';
+import { Card, CardContent } from '@/components/ui/card';
 
 const columns: ColumnDef<Compliance>[] = [
   {
@@ -60,20 +61,24 @@ export default function CompliancePage() {
     <div className="space-y-6">
       <PageHeader title="Compliance" breadcrumbs={[{ name: 'Compliance' }]} />
       
-      <DataTable
-        columns={columns}
-        data={paginatedData}
-        onView={(row) => openModal('view', 'compliance', row)}
-        onEdit={(row) => openModal('edit', 'compliance', row)}
-        onDelete={(row) => openModal('delete', 'compliance', row)}
-      />
+      <Card>
+        <CardContent className="pt-6">
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            onView={(row) => openModal('view', 'compliance', row)}
+            onEdit={(row) => openModal('edit', 'compliance', row)}
+            onDelete={(row) => openModal('delete', 'compliance', row)}
+          />
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={compliance.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={compliance.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

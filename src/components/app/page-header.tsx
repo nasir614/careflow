@@ -14,11 +14,11 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, breadcrumbs, children }: PageHeaderProps) {
   return (
-    <div className="mb-6 print:hidden">
+    <div className="mb-8 print:hidden">
       <nav aria-label="Breadcrumb" className="mb-2">
-        <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <ol className="flex items-center gap-1.5 text-sm text-textMuted">
           <li>
-            <Link href="/dashboard" className="flex items-center gap-1.5 hover:text-foreground">
+            <Link href="/dashboard" className="flex items-center gap-1.5 hover:text-textPrimary">
               <Home className="w-4 h-4" />
             </Link>
           </li>
@@ -26,18 +26,18 @@ export function PageHeader({ title, breadcrumbs, children }: PageHeaderProps) {
             <li key={index} className="flex items-center gap-1.5">
               <ChevronRight className="w-4 h-4" />
               {item.href ? (
-                <Link href={item.href} className="hover:text-foreground">
+                <Link href={item.href} className="hover:text-textPrimary">
                   {item.name}
                 </Link>
               ) : (
-                <span className="font-medium text-foreground">{item.name}</span>
+                <span className="font-medium text-textPrimary">{item.name}</span>
               )}
             </li>
           ))}
         </ol>
       </nav>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">{title}</h1>
         <div className="flex items-center gap-2">
             {children}
         </div>

@@ -20,7 +20,7 @@ export default function ReportsPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reports.map(report => (
-            <Card key={report} className="hover:shadow-lg hover:border-primary/50 transition-all">
+            <Card key={report}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-base font-semibold">{report}</CardTitle>
                     <BarChart3 className="w-5 h-5 text-primary" />

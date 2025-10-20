@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { DataTable, ColumnDef } from '@/components/app/data-table';
 import { Pagination } from '@/components/app/pagination';
 import type { Transportation } from '@/lib/types';
+import { Card, CardContent } from '@/components/ui/card';
 
 const columns: ColumnDef<Transportation>[] = [
   {
@@ -60,20 +61,24 @@ export default function TransportationPage() {
     <div className="space-y-6">
       <PageHeader title="Transportation" breadcrumbs={[{ name: 'Transportation' }]} />
       
-      <DataTable
-        columns={columns}
-        data={paginatedData}
-        onView={(row) => openModal('view', 'transportation', row)}
-        onEdit={(row) => openModal('edit', 'transportation', row)}
-        onDelete={(row) => openModal('delete', 'transportation', row)}
-      />
+      <Card>
+        <CardContent className="pt-6">
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            onView={(row) => openModal('view', 'transportation', row)}
+            onEdit={(row) => openModal('edit', 'transportation', row)}
+            onDelete={(row) => openModal('delete', 'transportation', row)}
+          />
 
-      <Pagination
-        currentPage={currentPage}
-        totalItems={transportation.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={transportation.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
