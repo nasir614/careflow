@@ -99,10 +99,12 @@ export default function BulkAttendanceForm({ onSubmit, onCancel, isLoading }: {
   };
 
   const handleDailyLogChange = (index: number, field: keyof DailyLog, value: string | boolean) => {
-    const newLogs = [...dailyLogs];
-    const logToUpdate = { ...newLogs[index], [field]: value };
-    newLogs[index] = logToUpdate;
-    setDailyLogs(newLogs);
+    setDailyLogs(prevLogs => {
+      const newLogs = [...prevLogs];
+      const logToUpdate = { ...newLogs[index], [field]: value };
+      newLogs[index] = logToUpdate;
+      return newLogs;
+    });
   };
   
   const removeDateEntry = (index: number) => {
