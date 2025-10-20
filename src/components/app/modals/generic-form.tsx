@@ -224,13 +224,12 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
   const renderField = (field: FieldConfig) => {
     const { name, label, type, required, options, placeholder, className, disabled } = field;
     const commonProps = {
-        key: name,
         className: className || ''
     };
 
     if (type === 'select') {
       return (
-        <div {...commonProps}>
+        <div key={name} {...commonProps}>
           <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
           <Select value={(formData[name as keyof AnyData] as string) || ""} onValueChange={(value) => handleSelectChange(name, value)} required={required} disabled={disabled}>
             <SelectTrigger>
@@ -249,7 +248,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     }
     if (type === 'textarea') {
       return (
-         <div {...commonProps}>
+         <div key={name} {...commonProps}>
           <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
           <Textarea name={name} value={(formData[name as keyof AnyData] as string) || ''} onChange={handleChange} required={required} placeholder={placeholder} />
         </div>
@@ -257,7 +256,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
     }
     if (type === 'checkbox') {
         return (
-          <div {...commonProps} className={`flex items-center gap-2 pt-6 ${className || ''}`}>
+          <div key={name} className={`flex items-center gap-2 pt-6 ${className || ''}`}>
             <Checkbox
               id={name}
               name={name}
@@ -269,7 +268,7 @@ export default function GenericForm({ module, item, onSubmit, isLoading, onCance
         );
       }
     return (
-      <div {...commonProps}>
+      <div key={name} {...commonProps}>
         <label className="block text-sm font-medium text-muted-foreground mb-1">{label}{required && <span className="text-destructive">*</span>}</label>
         <Input type={type} name={name} value={(formData[name as keyof AnyData] as any) || ''} onChange={handleChange} required={required} placeholder={placeholder} />
       </div>
