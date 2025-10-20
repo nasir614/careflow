@@ -8,7 +8,7 @@ import { Pagination } from '@/components/app/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, X, History, Search } from 'lucide-react';
+import { Filter, X, History, Search, PlusCircle } from 'lucide-react';
 import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -232,7 +232,12 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Attendance" breadcrumbs={[{ name: 'Attendance' }]} />
+      <PageHeader title="Attendance" breadcrumbs={[{ name: 'Attendance' }]}>
+        <Button variant="outline" size="sm" onClick={() => openModal('bulkAddAttendance', 'attendance')}>
+          <PlusCircle className="w-4 h-4 mr-2" />
+          Bulk Add Attendance
+        </Button>
+      </PageHeader>
 
       <Card>
         <CardHeader>
@@ -354,5 +359,3 @@ export default function AttendancePage() {
     </div>
   );
 }
-
-    

@@ -73,6 +73,22 @@ export type Attendance = {
   createdAt: string;
 };
 
+export type BulkAttendanceData = {
+  clientIds: number[];
+  staffId: number;
+  serviceType: string;
+  location: string;
+  billingCode: string;
+  startDate: string;
+  endDate: string;
+  checkInAM: string;
+  checkOutAM: string;
+  checkInPM: string;
+  checkOutPM: string;
+  status: AttendanceStatus;
+  notes: string;
+};
+
 export type Compliance = {
   id: number;
   client: string;
