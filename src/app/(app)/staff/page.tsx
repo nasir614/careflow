@@ -170,7 +170,7 @@ export default function StaffPage() {
           + Add New Staff
         </Button>
       </PageHeader>
-      
+
       <Card>
         <CardHeader>
             <CardTitle>Staff Directory</CardTitle>
@@ -261,7 +261,7 @@ export default function StaffPage() {
       )}
 
       {selectedStaff && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-lg">
