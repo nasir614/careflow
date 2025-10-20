@@ -34,9 +34,9 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
     if (item) {
       setFormData({
         ...item,
-        // Ensure IDs are strings for select components
         clientId: String(item.clientId),
         staffId: String(item.staffId),
+        servicePlanId: item.servicePlanId ? String(item.servicePlanId) : undefined,
         days: Array.isArray(item.days) ? item.days.join(', ') : item.days,
       });
     } else {
@@ -58,7 +58,6 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
     e.preventDefault();
     const dataToSubmit = {
       ...formData,
-      // Convert IDs back to numbers
       clientId: formData.clientId ? parseInt(String(formData.clientId), 10) : undefined,
       staffId: formData.staffId ? parseInt(String(formData.staffId), 10) : undefined,
       servicePlanId: formData.servicePlanId ? parseInt(String(formData.servicePlanId), 10) : undefined,
@@ -105,14 +104,17 @@ export default function ScheduleForm({ item, onSubmit, isLoading, onCancel }: Sc
                 <Input value={selectedServicePlan?.billingCode || ''} readOnly placeholder="Service Billing Code" />
             </div>
         </div>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Service Plan Start Date</label>
-                <Input type="date" value={selectedServicePlan?.startDate || ''} readOnly />
-            </div>
-             <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Service Plan End Date</label>
-                <Input type="date" value={selectedServicePlan?.endDate || ''} readOnly />
+        <div className="border p-4 rounded-md">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">Service Plan Period</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Start Date</label>
+                    <Input type="date" value={selectedServicePlan?.startDate || ''} readOnly />
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">End Date</label>
+                    <Input type="date" value={selectedServicePlan?.endDate || ''} readOnly />
+                </div>
             </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
