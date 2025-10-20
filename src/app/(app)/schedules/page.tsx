@@ -39,6 +39,11 @@ const dayAbbreviations: { [key: string]: string } = {
 
 const columns = (servicePlans: ServicePlan[]): ColumnDef<Schedule>[] => [
   { accessorKey: 'expand', header: '', cell: () => null },
+  { 
+    accessorKey: 'id', 
+    header: 'Schedule ID', 
+    cell: (row) => `SCH-${row.id}` 
+  },
   { accessorKey: 'clientName', header: 'Client', cell: (row) => row.clientName },
   { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
   { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
@@ -237,5 +242,3 @@ export default function SchedulesPage() {
     </div>
   );
 }
-
-    
