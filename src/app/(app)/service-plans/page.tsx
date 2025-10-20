@@ -43,6 +43,11 @@ const columns: ColumnDef<ServicePlan>[] = [
     cell: (row) => row.billingCode,
   },
   {
+    accessorKey: 'startDate',
+    header: 'Service Period',
+    cell: (row) => <div className="text-xs">{row.startDate} to {row.endDate}</div>,
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
