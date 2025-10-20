@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-const getStatusBadgeVariant = (status: EnrichedAttendance['status']) => {
+const getStatusBadgeVariant = (status: EnrichedAttendance['status']): 'badge-success' | 'badge-danger' | 'badge-warning' => {
   switch (status) {
     case 'present':
       return 'badge-success';
@@ -26,11 +26,11 @@ const getStatusBadgeVariant = (status: EnrichedAttendance['status']) => {
     case 'excused':
       return 'badge-warning';
     default:
-      return 'secondary';
+      return 'badge-warning';
   }
 };
 
-const getAdminStatusBadgeVariant = (status: EnrichedAttendance['adminStatus']) => {
+const getAdminStatusBadgeVariant = (status: EnrichedAttendance['adminStatus']): 'badge-success' | 'badge-danger' | 'badge-warning' => {
   switch (status) {
     case 'Approved':
       return 'badge-success';
