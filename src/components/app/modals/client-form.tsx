@@ -71,6 +71,8 @@ export default function ClientForm({ item, onSubmit, isLoading, onCancel }: Clie
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {renderField('firstName', 'First Name', 'text', true)}
             {renderField('lastName', 'Last Name', 'text', true)}
+            {renderField('dob', 'Date of Birth', 'date')}
+            {renderField('gender', 'Gender', 'select', false, ['Male', 'Female', 'Other'])}
             {renderField('phone', 'Phone', 'tel', true)}
             {renderField('email', 'Email', 'email')}
           </div>
@@ -93,7 +95,15 @@ export default function ClientForm({ item, onSubmit, isLoading, onCancel }: Clie
             {renderField('caseManager', 'Case Manager Name', 'text', true)}
             {renderField('caseManagerPhone', 'Case Manager Phone', 'tel', true)}
             {renderField('caseManagerEmail', 'Case Manager Email', 'email', true)}
-            {renderField('insurance', 'Insurance/HMO', 'select', true, ['Medicare', 'Medicaid', 'Private Insurance', 'Other'])}
+          </div>
+        </div>
+
+         <div>
+          <h3 className="font-semibold text-foreground border-b pb-2 mb-4">Insurance & Status</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField('medicaidId', 'Medicaid ID', 'text')}
+            {renderField('insurance', 'Primary Insurance', 'text')}
+            {renderField('insuranceSecondary', 'Secondary Insurance', 'text')}
             {renderField('status', 'Status', 'select', true, ['active', 'inactive'])}
           </div>
         </div>

@@ -1,113 +1,89 @@
-import { Client, Attendance, Billing, Compliance } from '@/lib/types';
+import { Client, Schedule } from '@/lib/types';
 import { useCareFlow } from '@/contexts/CareFlowContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Phone, Mail, MapPin, FileText, UserCog, ClipboardCheck, DollarSign, FileCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Users, Phone, Mail, MapPin, FileText, UserCog, ClipboardCheck, DollarSign, FileCheck, Calendar, Briefcase } from 'lucide-react';
+import { DataTable, ColumnDef } from '@/components/app/data-table';
+import { Badge } from '@/components/ui/badge';
 
 interface ViewClientModalProps {
   client: Client;
 }
 
-const InfoBlock: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; color: string; }> = ({ title, icon: Icon, children, color }) => (
-    <div className={`bg-gradient-to-br ${color} rounded-lg p-4 border border-border/60 h-full`}>
-        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Icon className="w-4 h-4 text-primary" />
-            {title}
-        </h4>
-        <div className="space-y-3">{children}</div>
-    </div>
+const InfoBlock: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; color?: string; }> = ({ title, icon: Icon, children, color = "from-card to-card" }) => (
+    <Card className={`bg-gradient-to-br ${color}`}>
+        <CardHeader>
+            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Icon className="w-5 h-5 text-primary" />
+                {title}
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            {children}
+        </CardContent>
+    </Card>
 );
 
 const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.ElementType; }> = ({ label, value, icon: Icon }) => (
     <div>
-        <p className="text-xs text-muted-foreground uppercase">{label}</p>
-        <div className="text-sm font-medium flex items-center gap-2 mt-0.5">
-            {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
-            <span>{value}</span>
+        <p className="text-xs text-muted-foreground uppercase flex items-center gap-1.5">
+            {Icon && <Icon className="w-3 h-3" />}
+            {label}
+        </p>
+        <div className="text-sm font-medium mt-0.5">
+            {value || <span className="text-muted-foreground italic">N/A</span>}
         </div>
     </div>
 );
 
+const scheduleColumns: ColumnDef<Schedule>[] = [
+  { accessorKey: 'staffName', header: 'Staff', cell: (row) => row.staffName },
+  { accessorKey: 'serviceType', header: 'Service', cell: (row) => row.serviceType },
+  { accessorKey: 'days', header: 'Days', cell: (row) => Array.isArray(row.days) ? row.days.join(', ') : row.days },
+  { accessorKey: 'hoursPerDay', header: 'Hours', cell: (row) => `${row.hoursPerDay}h/day` },
+  { accessorKey: 'status', header: 'Status', cell: (row) => <Badge variant={row.status === 'active' ? 'default' : 'destructive'}>{row.status}</Badge> },
+];
+
 export default function ViewClientModal({ client }: ViewClientModalProps) {
-  const { attendance, billing, compliance } = useCareFlow();
+  const { schedules } = useCareFlow();
   
-  const relatedAttendance = attendance.filter(a => a.clientName === `${client.firstName} ${client.lastName}`);
-  const relatedBilling = billing.filter(b => b.client === `${client.firstName} ${client.lastName}`);
-  const relatedCompliance = compliance.filter(c => c.client === `${client.firstName} ${client.lastName}`);
+  const clientSchedules = schedules.filter(s => s.clientId === client.id);
 
   return (
     <div className="space-y-6">
-      <header className="flex items-start gap-4 pb-6 border-b">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-headline text-4xl">
-          {client.firstName[0]}{client.lastName[0]}
-        </div>
-        <div className="flex-1">
-          <h3 className="text-3xl font-bold font-headline text-foreground">
-            {client.firstName} {client.lastName}
-          </h3>
-          <div className="flex items-center gap-4 mt-1">
-            <span className={`badge ${client.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
-              {client.status}
-            </span>
-            <span className="text-sm text-muted-foreground">Client ID: {client.id}</span>
-            <span className="text-sm text-muted-foreground">Member Since: {client.createdAt}</span>
-          </div>
-        </div>
-      </header>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <InfoBlock title="Personal Information" icon={Users} color="from-blue-500/10 to-card">
-          <InfoItem label="Full Name" value={`${client.firstName} ${client.lastName}`} />
-          <InfoItem label="Phone" value={client.phone} icon={Phone} />
-          <InfoItem label="Email" value={client.email} icon={Mail} />
-        </InfoBlock>
-        <InfoBlock title="Address" icon={MapPin} color="from-green-500/10 to-card">
-          <InfoItem label="Street" value={client.address} />
-          <InfoItem label="City" value={client.city} />
-          <div className="grid grid-cols-2 gap-4">
-             <InfoItem label="State" value={client.state} />
-             <InfoItem label="ZIP Code" value={client.zip} />
-          </div>
-        </InfoBlock>
-      </div>
-
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <InfoBlock title="Provider Information" icon={FileText} color="from-purple-500/10 to-card">
-          <InfoItem label="Agency Name" value={client.providerName} />
-          <InfoItem label="Insurance/HMO" value={client.insurance} />
-          <InfoItem label="Service Code" value={client.serviceCode} />
-        </InfoBlock>
-        <InfoBlock title="Case Manager" icon={UserCog} color="from-orange-500/10 to-card">
-          <InfoItem label="Name" value={client.caseManager} />
-          <InfoItem label="Phone" value={client.caseManagerPhone} icon={Phone}/>
-          <InfoItem label="Email" value={client.caseManagerEmail} icon={Mail}/>
-        </InfoBlock>
-      </div>
-
-      <Card>
-        <CardHeader>
-            <CardTitle className="text-base">Related Records</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-muted p-4 rounded-lg">
-                    <ClipboardCheck className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                    <p className="text-2xl font-bold">{relatedAttendance.length}</p>
-                    <p className="text-xs text-muted-foreground">Attendance Records</p>
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                    <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                    <p className="text-2xl font-bold">{relatedBilling.length}</p>
-                    <p className="text-xs text-muted-foreground">Billing Records</p>
-                </div>
-                 <div className="bg-muted p-4 rounded-lg">
-                    <FileCheck className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                    <p className="text-2xl font-bold">{relatedCompliance.length}</p>
-                    <p className="text-xs text-muted-foreground">Compliance Items</p>
-                </div>
+       <InfoBlock title="Client Information" icon={Users}>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <InfoItem label="Full Name" value={`${client.firstName} ${client.lastName}`} />
+            <InfoItem label="Date of Birth" value={client.dob} />
+            <InfoItem label="Gender" value={client.gender} />
+            <InfoItem label="Phone" value={client.phone} icon={Phone} />
+            <InfoItem label="Email" value={client.email} icon={Mail} />
+            <InfoItem label="Address" value={`${client.address}, ${client.city}, ${client.state} ${client.zip}`} icon={MapPin} />
+            <InfoItem label="Medicaid ID" value={client.medicaidId} />
+            <InfoItem label="Primary Insurance" value={client.insurance} />
+            <InfoItem label="Secondary Insurance" value={client.insuranceSecondary} />
+         </div>
+       </InfoBlock>
+       
+       <InfoBlock title="Case Manager" icon={UserCog}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoItem label="Name" value={client.caseManager} />
+                <InfoItem label="Phone" value={client.caseManagerPhone} icon={Phone} />
+                <InfoItem label="Email" value={client.caseManagerEmail} icon={Mail} />
+                <InfoItem label="Notes" value={"Oversees PASSPORT services and authorizations."} />
             </div>
-        </CardContent>
-      </Card>
+       </InfoBlock>
+
+       <InfoBlock title="Schedules" icon={Calendar}>
+          <DataTable columns={scheduleColumns} data={clientSchedules} />
+       </InfoBlock>
+
+       <InfoBlock title="Authorizations" icon={FileCheck}>
+          <p className="text-sm text-muted-foreground">Authorization tracking coming soon.</p>
+       </InfoBlock>
+       
+       <InfoBlock title="Providers" icon={Briefcase}>
+            <p className="text-sm text-muted-foreground">Provider tracking coming soon.</p>
+       </InfoBlock>
     </div>
   );
 }
