@@ -8,9 +8,12 @@ import { Pagination } from '@/components/app/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Printer, Filter, X } from 'lucide-react';
-import type { Client } from '@/lib/types';
+import { Download, Printer, Filter, X, CalendarRange } from 'lucide-react';
+import type { Client, Schedule } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const getStatusBadgeClass = (status: Client['status']) => {
   switch (status) {
@@ -22,32 +25,26 @@ const getStatusBadgeClass = (status: Client['status']) => {
   }
 };
 
-
-const columns: ColumnDef<Client>[] = [
+const scheduleColumns: ColumnDef<Schedule>[] = [
   {
-    accessorKey: 'firstName',
-    header: 'Name',
-    cell: (row) => `${row.firstName} ${row.lastName}`,
+    accessorKey: 'staffName',
+    header: 'Staff',
+    cell: (row) => row.staffName,
   },
   {
-    accessorKey: 'phone',
-    header: 'Phone',
-    cell: (row) => row.phone,
+    accessorKey: 'serviceType',
+    header: 'Service',
+    cell: (row) => row.serviceType,
   },
   {
-    accessorKey: 'city',
-    header: 'Location',
-    cell: (row) => `${row.city}, ${row.state}`,
-  },
-  {
-    accessorKey: 'providerName',
-    header: 'Provider',
-    cell: (row) => row.providerName,
+    accessorKey: 'startDate',
+    header: 'Period',
+    cell: (row) => <div className="text-xs min-w-[80px]">{row.startDate}<br />to {row.endDate}</div>,
   },
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: (row) => <span className={cn('badge', getStatusBadgeClass(row.status))}>{row.status}</span>,
+    cell: (row) => <span className={`badge ${row.status === 'active' ? 'badge-success' : row.status === 'expired' ? 'badge-danger' : 'badge-warning'}`}>{row.status}</span>,
   },
   {
     accessorKey: 'actions',
@@ -56,16 +53,16 @@ const columns: ColumnDef<Client>[] = [
   },
 ];
 
-const ITEMS_PER_PAGE = 8;
+
+const ITEMS_PER_PAGE = 5;
 
 export default function ClientsPage() {
-  const { clients, openModal } = useCareFlow();
+  const { clients, schedules, openModal } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [providerFilter, setProviderFilter] = useState('all');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(clients[0] || null);
 
-  const providerOptions = useMemo(() => [...new Set(clients.map(c => c.providerName))], [clients]);
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -74,103 +71,129 @@ export default function ClientsPage() {
         c.phone.includes(searchTerm) ||
         c.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-      const matchesProvider = providerFilter === 'all' || c.providerName === providerFilter;
-      return matchesSearch && matchesStatus && matchesProvider;
+      return matchesSearch && matchesStatus;
     });
-  }, [clients, searchTerm, statusFilter, providerFilter]);
+  }, [clients, searchTerm, statusFilter]);
 
   const paginatedClients = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredClients.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredClients, currentPage]);
 
+  const clientSchedules = useMemo(() => {
+    if (!selectedClient) return [];
+    return schedules.filter(s => s.clientId === selectedClient.id);
+  }, [schedules, selectedClient]);
+
+
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
-    setProviderFilter('all');
     setCurrentPage(1);
   };
   
-  const exportToCSV = () => {
-    const headers = Object.keys(clients[0] || {});
-    const csv = [
-      headers.join(','),
-      ...clients.map(row => headers.map(h => JSON.stringify(row[h as keyof Client])).join(','))
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `clients_export_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-  
-  const printTable = () => {
-    window.print();
-  };
+  const getClientAvatar = (clientId: number) => {
+    // This is a placeholder. In a real app, you might have client images.
+    const avatar = PlaceHolderImages.find(img => img.id === `staff-${clientId}`);
+    return avatar?.imageUrl || '';
+  }
 
   return (
     <div className="space-y-6">
       <PageHeader title="Clients" breadcrumbs={[{ name: 'Clients' }]}>
-        <Button variant="outline" size="sm" onClick={exportToCSV}>
-          <Download className="w-4 h-4 mr-2" />
-          Export CSV
-        </Button>
-        <Button variant="outline" size="sm" onClick={printTable}>
-          <Printer className="w-4 h-4 mr-2" />
-          Print
+        <Button variant="outline" size="sm" onClick={() => openModal('add', 'clients')}>
+          + Add New Client
         </Button>
       </PageHeader>
       
-      <div className="bg-card rounded-lg border p-4 space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <Input 
-            placeholder="Search by name, phone, email..." 
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="max-w-xs"
-          />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="All Providers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Providers</SelectItem>
-              {providerOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" onClick={clearFilters} className="text-sm">
-            <X className="w-4 h-4 mr-2" />
-            Clear Filters
-          </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-4">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>All Clients</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Input 
+                  placeholder="Search clients..." 
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="mb-4"
+                />
+                 <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full mb-4">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                {paginatedClients.map(c => (
+                  <div 
+                    key={c.id} 
+                    onClick={() => setSelectedClient(c)}
+                    className={cn(
+                        "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                        selectedClient?.id === c.id ? "bg-primary/10" : "hover:bg-muted"
+                    )}
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={getClientAvatar(c.id)} alt={`${c.firstName} ${c.lastName}`} />
+                      <AvatarFallback>{c.firstName[0]}{c.lastName[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-sm">{c.firstName} {c.lastName}</div>
+                      <div className="text-xs text-muted-foreground">{c.email}</div>
+                    </div>
+                     <span className={`ml-auto text-xs font-semibold px-2 py-1 rounded-full ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{c.status}</span>
+                  </div>
+                ))}
+              </div>
+
+               {filteredClients.length > ITEMS_PER_PAGE && (
+                 <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredClients.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
+               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
+          {selectedClient ? (
+            <>
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <CalendarRange className="w-5 h-5 text-primary" />
+                    Schedules for {selectedClient.firstName} {selectedClient.lastName}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DataTable
+                    columns={scheduleColumns}
+                    data={clientSchedules}
+                    onView={(row) => openModal('view', 'schedules', row)}
+                    onEdit={(row) => openModal('edit', 'schedules', row)}
+                    onDelete={(row) => openModal('delete', 'schedules', row)}
+                  />
+                </CardContent>
+              </Card>
+              {/* You can add more cards here for other client details */}
+            </>
+          ) : (
+             <div className="flex items-center justify-center h-full bg-card rounded-2xl border border-dashed">
+                <p className="text-muted-foreground">Select a client to see their details.</p>
+            </div>
+          )}
         </div>
       </div>
-
-      <DataTable
-        columns={columns}
-        data={paginatedClients}
-        onView={(row) => openModal('view', 'clients', row)}
-        onEdit={(row) => openModal('edit', 'clients', row)}
-        onDelete={(row) => openModal('delete', 'clients', row)}
-      />
-
-      <Pagination
-        currentPage={currentPage}
-        totalItems={filteredClients.length}
-        itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
     </div>
   );
 }
