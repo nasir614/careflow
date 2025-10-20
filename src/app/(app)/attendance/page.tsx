@@ -9,7 +9,7 @@ import type { EnrichedAttendance } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Clock, Filter, ListOrdered, PlusCircle, X } from 'lucide-react';
+import { CalendarIcon, Clock, Filter, ListOrdered, PlusCircle, X, CheckCircle, XCircle } from 'lucide-react';
 import { format, subMonths } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -42,74 +42,10 @@ const getAdminStatusBadgeVariant = (status: EnrichedAttendance['adminStatus']): 
   }
 };
 
-const columns: ColumnDef<EnrichedAttendance>[] = [
-  {
-    accessorKey: 'id',
-    header: 'Attendance ID',
-    cell: (row) => `ATT-${row.id}`,
-  },
-  {
-    accessorKey: 'clientName',
-    header: 'Client',
-    cell: (row) => (
-      <div>
-        <p className="font-medium">{row.clientName}</p>
-        <p className="text-xs text-muted-foreground">{format(new Date(row.date + 'T00:00:00'), 'MM/dd/yyyy')}</p>
-      </div>
-    )
-  },
-  {
-    accessorKey: 'staffName',
-    header: 'Staff',
-    cell: (row) => row.staffName,
-  },
-  {
-    accessorKey: 'checkInAM',
-    header: 'Time In/Out',
-    cell: (row) => (
-      <div className="text-xs">
-        <p>AM: {row.checkInAM || '--:--'} / {row.checkOutAM || '--:--'}</p>
-        <p>PM: {row.checkInPM || '--:--'} / {row.checkOutPM || '--:--'}</p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: 'totalHours',
-    header: 'Total Hours',
-    cell: (row) => row.totalHours.toFixed(2),
-  },
-  {
-    accessorKey: 'details',
-    header: 'Details',
-    cell: (row) => (
-      <div className="text-xs max-w-xs">
-        <p><span className="font-semibold">Code:</span> {row.billingCode}</p>
-        <p><span className="font-semibold">Procedures:</span> {row.procedures || 'N/A'}</p>
-        <p className="italic truncate"><span className="font-semibold">Notes:</span> {row.notes || 'N/A'}</p>
-      </div>
-    )
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: (row) => <Badge className={cn('border-0', getStatusBadgeVariant(row.status))}>{row.status}</Badge>,
-  },
-  {
-    accessorKey: 'adminStatus',
-    header: 'Admin Status',
-    cell: (row) => <Badge className={cn('border-0', getAdminStatusBadgeVariant(row.adminStatus))}>{row.adminStatus}</Badge>,
-  },
-  {
-    accessorKey: 'actions',
-    header: 'Actions',
-    cell: () => null,
-  },
-];
-
 const ITEMS_PER_PAGE = 8;
 
 export default function AttendancePage() {
-  const { attendance, clients, staff, openModal } = useCareFlow();
+  const { attendance, clients, staff, openModal, handleCRUD } = useCareFlow();
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     client: 'all',
@@ -120,6 +56,93 @@ export default function AttendancePage() {
       to: new Date(),
     } as DateRange | undefined,
   });
+
+  const columns: ColumnDef<EnrichedAttendance>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Attendance ID',
+      cell: (row) => `ATT-${row.id}`,
+    },
+    {
+      accessorKey: 'clientName',
+      header: 'Client',
+      cell: (row) => (
+        <div>
+          <p className="font-medium">{row.clientName}</p>
+          <p className="text-xs text-muted-foreground">{format(new Date(row.date + 'T00:00:00'), 'MM/dd/yyyy')}</p>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'staffName',
+      header: 'Staff',
+      cell: (row) => row.staffName,
+    },
+    {
+      accessorKey: 'checkInAM',
+      header: 'Time In/Out',
+      cell: (row) => (
+        <div className="text-xs">
+          <p>AM: {row.checkInAM || '--:--'} / {row.checkOutAM || '--:--'}</p>
+          <p>PM: {row.checkInPM || '--:--'} / {row.checkOutPM || '--:--'}</p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'totalHours',
+      header: 'Total Hours',
+      cell: (row) => row.totalHours.toFixed(2),
+    },
+    {
+      accessorKey: 'details',
+      header: 'Details',
+      cell: (row) => (
+        <div className="text-xs max-w-xs">
+          <p><span className="font-semibold">Code:</span> {row.billingCode}</p>
+          <p><span className="font-semibold">Procedures:</span> {row.procedures || 'N/A'}</p>
+          <p className="italic truncate"><span className="font-semibold">Notes:</span> {row.notes || 'N/A'}</p>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: (row) => <Badge className={cn('border-0', getStatusBadgeVariant(row.status))}>{row.status}</Badge>,
+    },
+    {
+      accessorKey: 'adminStatus',
+      header: 'Admin Status',
+      cell: (row) => <Badge className={cn('border-0', getAdminStatusBadgeVariant(row.adminStatus))}>{row.adminStatus}</Badge>,
+    },
+    {
+        accessorKey: 'review',
+        header: 'Review',
+        cell: (row) => {
+            if (row.adminStatus === 'Pending') {
+            return (
+                <div className="flex gap-1">
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600 hover:bg-green-100 hover:text-green-700" onClick={() => handleCRUD('edit', 'attendance', { ...row, adminStatus: 'Approved' }, row)}>
+                    <CheckCircle className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => handleCRUD('edit', 'attendance', { ...row, adminStatus: 'Rejected' }, row)}>
+                    <XCircle className="h-4 w-4" />
+                </Button>
+                </div>
+            )
+            }
+            return (
+                <div className="text-xs text-muted-foreground italic">
+                    {row.adminStatus}
+                </div>
+            );
+        }
+    },
+    {
+      accessorKey: 'actions',
+      header: 'Actions',
+      cell: () => null,
+    },
+  ];
 
   const clientOptions = useMemo(() => [...new Set(clients.map(c => `${c.firstName} ${c.lastName}`))], [clients]);
   const staffOptions = useMemo(() => [...new Set(staff.map(s => s.name))], [staff]);
